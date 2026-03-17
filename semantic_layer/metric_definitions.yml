@@ -1,0 +1,138 @@
+# Semantic Layer: 지표 정의
+# 사람과 LLM이 함께 읽을 수 있도록 한국어 + 영어 병기
+
+metrics:
+
+  # ═══════════════════════════════════════════════════
+  # 콘텐츠 성과 지표
+  # ═══════════════════════════════════════════════════
+
+  - name: avg_score
+    name_ko: "평균 점수"
+    description_ko: "작품의 MAL 커뮤니티 평균 점수"
+    description_en: "Average MAL community score for an anime"
+    type: average
+    formula: "AVG(mal_score)"
+    table: mart_content_performance
+    unit: "점 (1.0~10.0 scale)"
+    note: "Positivity Bias로 인해 전체 평균 ~6.5. 단독 지표로 사용 시 변별력 제한적"
+
+  - name: completion_rate
+    name_ko: "완주율"
+    description_ko: "작품을 시청 완료한 유저의 비율"
+    description_en: "Fraction of users who completed watching"
+    type: ratio
+    formula: "completed_users / total_list_count"
+    table: mart_content_performance
+    unit: "비율 (0.0~1.0)"
+    benchmark: "전체 평균 약 0.55"
+
+  - name: drop_rate
+    name_ko: "드롭률"
+    description_ko: "작품 시청을 중단한 유저의 비율"
+    description_en: "Fraction of users who dropped the anime"
+    type: ratio
+    formula: "dropped_users / total_list_count"
+    table: mart_content_performance
+    unit: "비율 (0.0~1.0)"
+    benchmark: "전체 평균 약 0.05. Score 4 이하는 ~0.20"
+
+  - name: performance_score
+    name_ko: "종합 성과 점수"
+    description_ko: "품질·인기도·유지력 종합 정규화 점수"
+    description_en: "Composite content performance score"
+    type: composite
+    formula: "0.4 × norm(score) + 0.3 × completion_rate + 0.2 × norm(log(members)) + 0.1 × (1 - drop_rate)"
+    table: mart_content_performance
+    unit: "점수 (0.0~1.0)"
+
+  - name: high_rating_ratio
+    name_ko: "고평점 비율"
+    description_ko: "평점 8점 이상을 부여한 유저의 비율"
+    description_en: "Fraction of ratings that are 8 or above"
+    type: ratio
+    formula: "COUNT(rating >= 8) / COUNT(rating)"
+    table: mart_content_performance
+    unit: "비율 (0.0~1.0)"
+
+  - name: low_rating_ratio
+    name_ko: "저평점 비율"
+    description_ko: "평점 4점 이하를 부여한 유저의 비율"
+    description_en: "Fraction of ratings that are 4 or below"
+    type: ratio
+    formula: "COUNT(rating <= 4) / COUNT(rating)"
+    table: mart_content_performance
+    unit: "비율 (0.0~1.0)"
+
+  # ═══════════════════════════════════════════════════
+  # 유저 행동 지표
+  # ═══════════════════════════════════════════════════
+
+  - name: total_ratings
+    name_ko: "총 평점 수"
+    description_ko: "유저가 부여한 총 평점 수"
+    description_en: "Total number of ratings given by a user"
+    type: count
+    formula: "COUNT(*) per user_id"
+    table: mart_user_segments
+    unit: "개"
+    benchmark: "중앙값 ~113, 상위 1% 기준 1,132+"
+
+  - name: user_avg_rating
+    name_ko: "유저 평균 평점"
+    description_ko: "유저가 부여한 평점의 평균"
+    description_en: "Average rating given by a user"
+    type: average
+    formula: "AVG(rating) per user_id"
+    table: mart_user_segments
+    unit: "점 (1~10)"
+    benchmark: "전체 유저 평균 ~7.5. 파워유저 평균 ~6.86"
+
+  - name: user_completion_rate
+    name_ko: "유저 완주율"
+    description_ko: "유저의 시청 목록 중 완료한 비율"
+    description_en: "Fraction of user's anime list that is completed"
+    type: ratio
+    formula: "completed_count / total_list_entries"
+    table: mart_user_segments
+    unit: "비율 (0.0~1.0)"
+
+  - name: rating_engagement_ratio
+    name_ko: "평점 참여율"
+    description_ko: "유저의 리스트 대비 실제 평점 부여 비율. 높을수록 적극적 평가자"
+    description_en: "Ratio of ratings to list entries — higher means more active rater"
+    type: ratio
+    formula: "total_ratings / total_list_entries"
+    table: mart_user_segments
+    unit: "비율"
+
+  # ═══════════════════════════════════════════════════
+  # 장르 트렌드 지표
+  # ═══════════════════════════════════════════════════
+
+  - name: genre_anime_count
+    name_ko: "장르별 작품 수"
+    description_ko: "해당 장르에 속하는 총 작품 수 (멀티 장르 중복 포함)"
+    description_en: "Total anime count in a genre (with multi-genre overlap)"
+    type: count
+    formula: "COUNT(DISTINCT anime_id) per genre"
+    table: mart_genre_trends
+    unit: "개"
+
+  - name: genre_health_score
+    name_ko: "장르 건강도 점수"
+    description_ko: "장르의 성장성·품질·인기도·완주율 종합 점수"
+    description_en: "Composite genre health score"
+    type: composite
+    formula: "0.3 × recent_ratio + 0.3 × norm(score) + 0.2 × popular_ratio + 0.2 × avg_completion_rate"
+    table: mart_genre_trends
+    unit: "점수 (0.0~1.0)"
+
+  - name: count_growth_rate
+    name_ko: "작품 수 성장률"
+    description_ko: "최근 5년(2015-2019) vs 이전 5년(2010-2014) 연평균 작품 수 증감률"
+    description_en: "Growth rate comparing average annual anime count between two 5-year periods"
+    type: growth_rate
+    formula: "(recent_avg_count - prev_avg_count) / prev_avg_count"
+    table: mart_genre_trends
+    unit: "비율 (양수=성장, 음수=감소)"

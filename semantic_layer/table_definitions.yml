@@ -1,0 +1,166 @@
+# Semantic Layer: 테이블/컬럼 표준 정의
+# 사람과 LLM이 함께 읽을 수 있도록 한국어 + 영어 병기
+
+tables:
+  # ═══════════════════════════════════════════════════
+  # Mart Layer — 비즈니스 질문 답변용 최종 테이블
+  # ═══════════════════════════════════════════════════
+
+  - name: mart_content_performance
+    description_ko: "콘텐츠 성과 종합 테이블 — 작품별 품질, 인기도, 시청 행동 KPI"
+    description_en: "Content performance summary — quality, popularity, and viewing behavior KPIs per anime"
+    primary_key: anime_id
+    grain: "하나의 행 = 하나의 애니메이션 작품"
+    row_count_approx: 17562
+    columns:
+      - name: anime_id
+        type: INTEGER
+        description_ko: "MyAnimeList 작품 고유 ID"
+        description_en: "Unique anime identifier on MyAnimeList"
+      - name: name
+        type: VARCHAR
+        description_ko: "작품명 (일본어/로마자)"
+        description_en: "Anime title"
+      - name: type
+        type: VARCHAR
+        description_ko: "작품 유형 (TV, OVA, Movie, Special, ONA, Music)"
+        description_en: "Anime type/format"
+        values: [TV, OVA, Movie, Special, ONA, Music]
+      - name: genres
+        type: VARCHAR
+        description_ko: "장르 (쉼표 구분 멀티 장르)"
+        description_en: "Comma-separated genre list"
+      - name: source_material
+        type: VARCHAR
+        description_ko: "원작 매체 (Manga, Original, Light novel 등)"
+        description_en: "Source material type"
+      - name: source_category
+        type: VARCHAR
+        description_ko: "원작 분류 (IP-based: 기존 IP 기반, Original: 오리지널)"
+        description_en: "Source category — IP-based vs Original"
+        values: [IP-based, Original, Other-IP]
+      - name: studios
+        type: VARCHAR
+        description_ko: "제작 스튜디오 (쉼표 구분)"
+        description_en: "Production studio(s)"
+      - name: start_year
+        type: INTEGER
+        description_ko: "방영/공개 시작 연도"
+        description_en: "Year of first airing/release"
+      - name: mal_score
+        type: DOUBLE
+        description_ko: "MAL 커뮤니티 평균 점수 (1.0~10.0)"
+        description_en: "MAL community average score (1.0-10.0)"
+      - name: avg_rating
+        type: DOUBLE
+        description_ko: "유저 평점 평균 (rating_complete 기준)"
+        description_en: "Average user rating from completed ratings"
+      - name: members
+        type: INTEGER
+        description_ko: "작품을 리스트에 추가한 유저 수 (인기도 지표)"
+        description_en: "Number of users who added this anime to their list"
+      - name: members_tier
+        type: VARCHAR
+        description_ko: "인기도 티어 (상위 1%/5%/10% 등)"
+        description_en: "Popularity tier based on member count percentile"
+        values: [Top 1%, Top 5%, Top 10%, Upper Half, Lower Half]
+      - name: completion_rate
+        type: DOUBLE
+        description_ko: "완주율 (완료 유저 / 전체 리스트 유저). 콘텐츠 품질의 핵심 KPI"
+        description_en: "Completion rate — fraction of users who completed watching"
+      - name: drop_rate
+        type: DOUBLE
+        description_ko: "드롭률 (드롭 유저 / 전체 리스트 유저). 콘텐츠 품질의 역지표"
+        description_en: "Drop rate — fraction of users who dropped the anime"
+      - name: performance_score
+        type: DOUBLE
+        description_ko: "종합 성과 점수 (Score 40% + 완주율 30% + Members 20% + 드롭률 역수 10%)"
+        description_en: "Composite performance score combining quality, completion, and popularity"
+      - name: has_synopsis
+        type: BOOLEAN
+        description_ko: "유효한 시놉시스 존재 여부"
+        description_en: "Whether the anime has a valid synopsis"
+      - name: is_digital_native
+        type: BOOLEAN
+        description_ko: "디지털 네이티브 작품 여부 (ONA)"
+        description_en: "Whether the anime is a digital-native format (ONA)"
+
+  - name: mart_user_segments
+    description_ko: "유저 세그먼트 테이블 — 활동 수준, 평점 성향, 시청 패턴"
+    description_en: "User segment table — activity level, rating tendency, viewing patterns"
+    primary_key: user_id
+    grain: "하나의 행 = 하나의 유저"
+    row_count_approx: 310059
+    columns:
+      - name: user_id
+        type: INTEGER
+        description_ko: "유저 고유 ID"
+        description_en: "Unique user identifier"
+      - name: user_tier
+        type: VARCHAR
+        description_ko: "활동 수준 티어 (Power: 상위 1%, Active: 상위 10%, Regular: 상위 50%, Casual: 나머지)"
+        description_en: "Activity level tier based on total ratings percentile"
+        values: [Power, Active, Regular, Casual]
+      - name: total_ratings
+        type: INTEGER
+        description_ko: "총 평점 부여 수"
+        description_en: "Total number of ratings given"
+      - name: avg_rating
+        type: DOUBLE
+        description_ko: "평균 평점"
+        description_en: "Average rating given by user"
+      - name: rating_tendency
+        type: VARCHAR
+        description_ko: "평점 성향 (Generous: 8.5+, Moderate: 7.0+, Critical: 5.5+, Very Critical: 5.5-)"
+        description_en: "Rating tendency classification"
+        values: [Generous, Moderate, Critical, Very Critical]
+      - name: viewing_diversity
+        type: VARCHAR
+        description_ko: "시청 다양성 (Explorer: 500+ 작품, Regular Viewer: 100+, Selective: 30+, Newcomer)"
+        description_en: "Viewing diversity based on unique anime rated"
+        values: [Explorer, Regular Viewer, Selective, Newcomer]
+      - name: user_completion_rate
+        type: DOUBLE
+        description_ko: "유저의 완주 비율 (완료 / 전체 리스트)"
+        description_en: "User's completion rate across their anime list"
+      - name: user_drop_rate
+        type: DOUBLE
+        description_ko: "유저의 드롭 비율 (드롭 / 전체 리스트)"
+        description_en: "User's drop rate across their anime list"
+      - name: most_watched_genres
+        type: VARCHAR
+        description_ko: "가장 많이 시청한 장르 조합"
+        description_en: "Most frequently watched genre combination"
+
+  - name: mart_genre_trends
+    description_ko: "장르 트렌드 테이블 — 장르별 성장성, 품질, 인기도 분석"
+    description_en: "Genre trend analysis — growth, quality, and popularity metrics per genre"
+    primary_key: genre
+    grain: "하나의 행 = 하나의 장르"
+    row_count_approx: 43
+    columns:
+      - name: genre
+        type: VARCHAR
+        description_ko: "장르명"
+        description_en: "Genre name"
+      - name: anime_count
+        type: INTEGER
+        description_ko: "해당 장르의 총 작품 수"
+        description_en: "Total anime count in this genre"
+      - name: avg_mal_score
+        type: DOUBLE
+        description_ko: "해당 장르의 평균 MAL 점수"
+        description_en: "Average MAL score for this genre"
+      - name: trend_category
+        type: VARCHAR
+        description_ko: "트렌드 분류 (Growing: 30%+ 성장, Declining: 20%+ 감소, Stable)"
+        description_en: "Trend classification based on recent vs previous period"
+        values: [Growing, Declining, Stable]
+      - name: genre_health_score
+        type: DOUBLE
+        description_ko: "장르 건강도 점수 (성장 30% + 품질 30% + 인기 20% + 완주율 20%)"
+        description_en: "Composite genre health score"
+      - name: count_growth_rate
+        type: DOUBLE
+        description_ko: "작품 수 성장률 (최근 5년 vs 이전 5년)"
+        description_en: "Growth rate in anime count (2015-2019 vs 2010-2014)"
