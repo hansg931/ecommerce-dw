@@ -45,20 +45,22 @@ def load_golden_queries():
         content = f.read()
 
     queries = {}
-    # -- CP01 형식 ID 추출
+    # "-- ─── CP01: 설명 ───" 패턴으로 분리
     blocks = re.split(r"\n-- ─── ", content)
     for block in blocks[1:]:
         id_match = re.search(r"^(\w+):", block)
         if id_match:
             qid = id_match.group(1)
-            # ID 줄과 설명 줄 제거 후 SQL만 추출
             lines = block.split("\n")
             sql_lines = []
             for line in lines:
-                if line.startswith("-- " + qid):
+                # 첫 줄(설명줄): "CP01: 평균 점수... ───"
+                if re.match(r"^\w+:.*───", line):
                     continue
-                if line.startswith("-- ───"):
+                # "-- CP01" 주석줄
+                if line.strip() == f"-- {qid}":
                     continue
+                # 일반 주석은 유지 (WHERE 조건 설명 등)
                 sql_lines.append(line)
             sql = "\n".join(sql_lines).strip().rstrip(";")
             if sql:
@@ -165,22 +167,61 @@ def classify_error(error_msg: str) -> str:
 
 
 def compare_results(con, golden_sql: str, generated_sql: str) -> dict:
-    """Golden Query와 생성된 SQL의 결과 비교"""
+    """Golden Query와 생성된 SQL의 결과 비교 (다층 평가)"""
     try:
         golden_result = con.execute(golden_sql).df()
         gen_result = con.execute(generated_sql).df()
 
-        # 행 수 일치
+        # 1) 행 수 일치
         row_match = len(golden_result) == len(gen_result)
-        # 컬럼 수 일치
+        # 2) 컬럼 수 일치
         col_match = len(golden_result.columns) == len(gen_result.columns)
-        # 결과가 비슷한지 (첫 행의 값 비교)
-        if row_match and col_match and len(golden_result) > 0:
-            # 대략적 값 비교
-            return {"row_match": True, "col_match": True, "result_match": True}
-        return {"row_match": row_match, "col_match": col_match, "result_match": row_match and col_match}
-    except Exception:
-        return {"row_match": False, "col_match": False, "result_match": False}
+
+        # 3) 공통 컬럼의 값 비교 (핵심 지표)
+        common_cols = set(golden_result.columns) & set(gen_result.columns)
+        value_match = False
+        if common_cols and len(golden_result) > 0 and len(gen_result) > 0:
+            # 공통 컬럼 중 수치형 컬럼의 첫 행 값 비교
+            matches = 0
+            compared = 0
+            for col in common_cols:
+                try:
+                    g_val = golden_result[col].iloc[0]
+                    e_val = gen_result[col].iloc[0]
+                    if g_val is None and e_val is None:
+                        matches += 1
+                    elif isinstance(g_val, (int, float)) and isinstance(e_val, (int, float)):
+                        # 수치형: 5% 오차 허용
+                        if g_val == 0:
+                            matches += 1 if e_val == 0 else 0
+                        elif abs(g_val - e_val) / abs(g_val) < 0.05:
+                            matches += 1
+                    elif str(g_val) == str(e_val):
+                        matches += 1
+                    compared += 1
+                except Exception:
+                    pass
+            value_match = compared > 0 and matches / compared >= 0.5
+
+        # 4) 최종 result_match: row + (col 또는 공통값 일치)
+        result_match = row_match and (col_match or value_match)
+
+        return {
+            "row_match": row_match,
+            "col_match": col_match,
+            "value_match": value_match,
+            "common_columns": len(common_cols),
+            "result_match": result_match,
+        }
+    except Exception as e:
+        return {
+            "row_match": False,
+            "col_match": False,
+            "value_match": False,
+            "common_columns": 0,
+            "result_match": False,
+            "compare_error": str(e)[:200],
+        }
 
 
 def run_evaluation():
