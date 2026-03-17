@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: mart_content_performance
+    description: "콘텐츠 성과 종합 테이블 — 작품별 품질, 인기도, 시청 행동 KPI"
+    columns:
+      - name: anime_id
+        description: "작품 고유 ID"
+        tests:
+          - unique
+          - not_null
+      - name: performance_score
+        description: "종합 성과 점수 (Score 40% + Completion 30% + Members 20% + Low Drop 10%)"
+      - name: completion_rate
+        description: "완주율 (콘텐츠 품질의 핵심 KPI)"
+      - name: drop_rate
+        description: "드롭률 (콘텐츠 품질의 역지표)"
+
+  - name: mart_user_segments
+    description: "유저 세그먼트 테이블 — 활동 수준, 평점 성향, 시청 다양성"
+    columns:
+      - name: user_id
+        description: "유저 고유 ID"
+        tests:
+          - unique
+          - not_null
+      - name: user_tier
+        description: "활동 수준 (Power / Active / Regular / Casual)"
+      - name: rating_tendency
+        description: "평점 성향 (Generous / Moderate / Critical / Very Critical)"
+      - name: viewing_diversity
+        description: "시청 다양성 (Explorer / Regular Viewer / Selective / Newcomer)"
+
+  - name: mart_genre_trends
+    description: "장르 트렌드 테이블 — 장르별 성장성, 품질, 인기도 분석"
+    columns:
+      - name: genre
+        description: "장르명"
+        tests:
+          - unique
+          - not_null
+      - name: trend_category
+        description: "트렌드 분류 (Growing / Declining / Stable)"
+      - name: genre_health_score
+        description: "장르 건강도 점수 (성장 + 품질 + 인기 종합)"
