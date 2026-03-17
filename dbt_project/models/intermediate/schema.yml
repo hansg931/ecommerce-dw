@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: int_anime_stats
+    description: "작품별 종합 통계 (메타데이터 + 평점 통계 + 시청 행동)"
+    columns:
+      - name: anime_id
+        description: "작품 고유 ID"
+        tests:
+          - unique
+          - not_null
+      - name: completion_rate
+        description: "완주율 (Completed / Total List Entries)"
+      - name: drop_rate
+        description: "드롭률 (Dropped / Total List Entries)"
+      - name: members_tier
+        description: "인기도 티어 (Top 1%, Top 5%, Top 10%, Upper Half, Lower Half)"
+
+  - name: int_user_profiles
+    description: "유저별 프로필 (평점 행동 + 시청 행동 + 선호 장르)"
+    columns:
+      - name: user_id
+        description: "유저 고유 ID"
+        tests:
+          - unique
+          - not_null
+      - name: user_tier
+        description: "유저 활동 티어 (Power, Active, Regular, Casual)"
+
+  - name: int_genre_metrics
+    description: "장르별 종합 지표 (멀티장르 unnest 처리)"
+    columns:
+      - name: genre
+        description: "개별 장르명"
+        tests:
+          - unique
+          - not_null
