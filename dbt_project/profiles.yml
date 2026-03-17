@@ -1,0 +1,7 @@
+mal_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/mal_analytics.duckdb
+      threads: 4

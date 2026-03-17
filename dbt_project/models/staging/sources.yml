@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "MyAnimeList 2020 raw CSV files"
+    meta:
+      loader: csv
+    tables:
+      - name: anime
+        description: "애니메이션 메타데이터 (17,562 작품)"
+        meta:
+          external_location: "'../../data/raw/anime.csv'"
+      - name: rating_complete
+        description: "유저 평점 데이터 (57M rows, 완료 시청 + 점수 부여)"
+        meta:
+          external_location: "'../../data/raw/rating_complete.csv'"
+      - name: animelist
+        description: "유저 시청 목록 (109M rows, 시청 상태 포함)"
+        meta:
+          external_location: "'../../data/raw/animelist.csv'"
+      - name: anime_with_synopsis
+        description: "애니메이션 시놉시스 텍스트"
+        meta:
+          external_location: "'../../data/raw/anime_with_synopsis.csv'"
+      - name: watching_status
+        description: "시청 상태 코드 매핑 (1=Watching, 2=Completed, ...)"
+        meta:
+          external_location: "'../../data/raw/watching_status.csv'"

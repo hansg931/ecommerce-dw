@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: stg_anime
+    description: "정제된 애니메이션 메타데이터 (17,562 작품)"
+    columns:
+      - name: anime_id
+        description: "MyAnimeList 작품 고유 ID"
+        tests:
+          - unique
+          - not_null
+      - name: name
+        description: "작품명 (일본어/로마자)"
+        tests:
+          - not_null
+      - name: type
+        description: "작품 유형 (TV, OVA, Movie, Special, ONA, Music)"
+        tests:
+          - accepted_values:
+              values: ['TV', 'OVA', 'Movie', 'Special', 'ONA', 'Music', 'Unknown']
+      - name: score
+        description: "MAL 커뮤니티 평균 점수 (1.0~10.0). NULL이면 미평가"
+      - name: members
+        description: "작품을 리스트에 추가한 유저 수 (인기도 지표)"
+      - name: source_category
+        description: "원작 매체 분류 (IP-based / Original / Other-IP)"
+      - name: is_digital_native
+        description: "디지털 네이티브 작품 여부 (ONA = true)"
+
+  - name: stg_ratings
+    description: "유저 평점 데이터 (57M rows, 완료 시청 + 점수 부여)"
+    columns:
+      - name: user_id
+        description: "유저 고유 ID"
+        tests:
+          - not_null
+      - name: anime_id
+        description: "작품 고유 ID"
+        tests:
+          - not_null
+      - name: rating
+        description: "유저 평점 (1~10)"
+        tests:
+          - not_null
+
+  - name: stg_animelist
+    description: "유저 시청 목록 (109M rows, 시청 상태 포함)"
+    columns:
+      - name: user_id
+        tests:
+          - not_null
+      - name: anime_id
+        tests:
+          - not_null
+      - name: watching_status
+        description: "시청 상태 (Watching, Completed, On Hold, Dropped, Plan to Watch)"
+        tests:
+          - accepted_values:
+              values: ['Watching', 'Completed', 'On Hold', 'Dropped', 'Plan to Watch', 'Unknown']
+
+  - name: stg_anime_synopsis
+    description: "애니메이션 시놉시스 텍스트"
+    columns:
+      - name: anime_id
+        tests:
+          - unique
+          - not_null
+      - name: has_synopsis
+        description: "유효한 시놉시스 존재 여부"
