@@ -1,0 +1,304 @@
+# Golden Dataset: 예상 질문 목록 (카테고리별)
+# LLM Data Agent가 받을 수 있는 자연어 질문 + 매핑 테이블
+
+questions:
+
+  # ═══════════════════════════════════════════════════
+  # 카테고리 1: 콘텐츠 성과 (Content Performance)
+  # ═══════════════════════════════════════════════════
+
+  - id: CP01
+    category: content_performance
+    question_ko: "평균 점수가 가장 높은 애니메이션 상위 10개는?"
+    question_en: "What are the top 10 anime by average score?"
+    difficulty: easy
+    target_table: mart_content_performance
+
+  - id: CP02
+    category: content_performance
+    question_ko: "완주율이 가장 높은 TV 애니메이션 상위 10개는?"
+    question_en: "What are the top 10 TV anime with the highest completion rate?"
+    difficulty: easy
+    target_table: mart_content_performance
+
+  - id: CP03
+    category: content_performance
+    question_ko: "드롭률이 가장 높은 작품은 무엇이고, 그 작품의 평균 점수는?"
+    question_en: "What are the most dropped anime and what are their scores?"
+    difficulty: easy
+    target_table: mart_content_performance
+
+  - id: CP04
+    category: content_performance
+    question_ko: "종합 성과 점수(performance_score) 상위 20개 작품과 그 지표들을 보여줘"
+    question_en: "Show me the top 20 anime by performance score with their metrics"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: CP05
+    category: content_performance
+    question_ko: "IP 기반(원작 있는) 작품과 오리지널 작품의 평균 점수, 완주율, 드롭률 비교"
+    question_en: "Compare IP-based vs Original anime by average score, completion rate, and drop rate"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: CP06
+    category: content_performance
+    question_ko: "Members가 10만 이상인 인기작 중 드롭률이 10% 이상인 작품은?"
+    question_en: "Which popular anime (100K+ members) have a drop rate above 10%?"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: CP07
+    category: content_performance
+    question_ko: "디지털 네이티브(ONA) 작품 vs TV 작품의 평균 점수와 완주율 비교"
+    question_en: "Compare digital native (ONA) vs TV anime by score and completion rate"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: CP08
+    category: content_performance
+    question_ko: "시놉시스가 없는 작품과 있는 작품의 평균 Members 수와 점수 차이는?"
+    question_en: "How do anime with vs without synopsis differ in members and score?"
+    difficulty: easy
+    target_table: mart_content_performance
+
+  - id: CP09
+    category: content_performance
+    question_ko: "인기도 상위 1% 작품의 평균 점수, 완주율, 장르 분포는?"
+    question_en: "What are the stats for Top 1% anime by popularity — score, completion rate, genre breakdown?"
+    difficulty: hard
+    target_table: mart_content_performance
+
+  - id: CP10
+    category: content_performance
+    question_ko: "2010년대(2010-2019) 작품 중 종합 성과 점수 상위 50개의 스튜디오별 분포는?"
+    question_en: "For top 50 anime by performance score in the 2010s, what's the studio distribution?"
+    difficulty: hard
+    target_table: mart_content_performance
+
+  # ═══════════════════════════════════════════════════
+  # 카테고리 2: 유저 행동 (User Behavior)
+  # ═══════════════════════════════════════════════════
+
+  - id: UB01
+    category: user_behavior
+    question_ko: "유저 티어별(Power/Active/Regular/Casual) 평균 평점과 유저 수는?"
+    question_en: "What are the average ratings and user counts by user tier?"
+    difficulty: easy
+    target_table: mart_user_segments
+
+  - id: UB02
+    category: user_behavior
+    question_ko: "파워유저(Power tier)의 평균 평점과 일반 유저의 평균 평점 차이는?"
+    question_en: "What's the difference in average rating between Power users and others?"
+    difficulty: easy
+    target_table: mart_user_segments
+
+  - id: UB03
+    category: user_behavior
+    question_ko: "평점 성향별(Generous/Moderate/Critical) 유저 수와 비율은?"
+    question_en: "How many users are in each rating tendency category?"
+    difficulty: easy
+    target_table: mart_user_segments
+
+  - id: UB04
+    category: user_behavior
+    question_ko: "가장 많은 작품을 본 유저 상위 10명의 프로필 (총 평점, 평균 평점, 시청 다양성)"
+    question_en: "Show profiles of top 10 users by total ratings"
+    difficulty: easy
+    target_table: mart_user_segments
+
+  - id: UB05
+    category: user_behavior
+    question_ko: "시청 다양성이 'Explorer'(500+ 작품)인 유저들의 평균 완주율과 드롭률은?"
+    question_en: "What are the completion and drop rates for Explorer-level users?"
+    difficulty: medium
+    target_table: mart_user_segments
+
+  - id: UB06
+    category: user_behavior
+    question_ko: "드롭 성향이 'High Dropper'인 유저들이 가장 많이 시청한 장르는?"
+    question_en: "What genres do High Droppers watch the most?"
+    difficulty: medium
+    target_table: mart_user_segments
+
+  - id: UB07
+    category: user_behavior
+    question_ko: "유저 티어별 완주율, 드롭률, 평점 참여율을 비교해줘"
+    question_en: "Compare completion rate, drop rate, and rating engagement by user tier"
+    difficulty: medium
+    target_table: mart_user_segments
+
+  - id: UB08
+    category: user_behavior
+    question_ko: "평균 평점이 9점 이상인 유저는 몇 명이고, 이들의 총 평점 수 평균은?"
+    question_en: "How many users have an average rating of 9+ and what's their average total ratings?"
+    difficulty: easy
+    target_table: mart_user_segments
+
+  - id: UB09
+    category: user_behavior
+    question_ko: "Generous 유저(평균 8.5+)와 Critical 유저(5.5~7.0)의 시청 작품 수 차이는?"
+    question_en: "Compare total anime watched between Generous and Critical users"
+    difficulty: medium
+    target_table: mart_user_segments
+
+  - id: UB10
+    category: user_behavior
+    question_ko: "총 시청 에피소드가 가장 많은 유저 상위 5명의 프로필은?"
+    question_en: "Show profiles of top 5 users by total watched episodes"
+    difficulty: easy
+    target_table: mart_user_segments
+
+  # ═══════════════════════════════════════════════════
+  # 카테고리 3: 장르 분석 (Genre Analysis)
+  # ═══════════════════════════════════════════════════
+
+  - id: GA01
+    category: genre_analysis
+    question_ko: "작품 수가 가장 많은 장르 상위 10개와 각 장르의 평균 점수는?"
+    question_en: "What are the top 10 genres by anime count with their average scores?"
+    difficulty: easy
+    target_table: mart_genre_trends
+
+  - id: GA02
+    category: genre_analysis
+    question_ko: "평균 MAL 점수가 가장 높은 장르 5개는?"
+    question_en: "What are the top 5 genres by average MAL score?"
+    difficulty: easy
+    target_table: mart_genre_trends
+
+  - id: GA03
+    category: genre_analysis
+    question_ko: "장르 건강도 점수(genre_health_score) 상위 10개 장르는?"
+    question_en: "What are the top 10 genres by health score?"
+    difficulty: easy
+    target_table: mart_genre_trends
+
+  - id: GA04
+    category: genre_analysis
+    question_ko: "성장 중(Growing)인 장르는 무엇이고, 각각의 성장률은?"
+    question_en: "Which genres are Growing and what are their growth rates?"
+    difficulty: medium
+    target_table: mart_genre_trends
+
+  - id: GA05
+    category: genre_analysis
+    question_ko: "감소 중(Declining)인 장르 목록과 그 원인 지표(점수 변화, 성장률)"
+    question_en: "Which genres are Declining and what are their metrics?"
+    difficulty: medium
+    target_table: mart_genre_trends
+
+  - id: GA06
+    category: genre_analysis
+    question_ko: "완주율이 가장 높은 장르 vs 드롭률이 가장 높은 장르 비교"
+    question_en: "Compare genres with highest completion rate vs highest drop rate"
+    difficulty: medium
+    target_table: mart_genre_trends
+
+  - id: GA07
+    category: genre_analysis
+    question_ko: "총 Members가 가장 많은 장르 상위 5개의 인기 작품 비율(popular_ratio)은?"
+    question_en: "For the top 5 genres by total members, what's their popular ratio?"
+    difficulty: medium
+    target_table: mart_genre_trends
+
+  - id: GA08
+    category: genre_analysis
+    question_ko: "최근 비율(recent_ratio)이 50% 이상인 '신흥 장르'는?"
+    question_en: "Which genres have recent_ratio above 50% — indicating emerging genres?"
+    difficulty: medium
+    target_table: mart_genre_trends
+
+  # ═══════════════════════════════════════════════════
+  # 카테고리 4: 트렌드 (Trends)
+  # ═══════════════════════════════════════════════════
+
+  - id: TR01
+    category: trends
+    question_ko: "연도별 애니메이션 작품 수 트렌드 (2000년 이후)"
+    question_en: "Show the yearly anime count trend since 2000"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: TR02
+    category: trends
+    question_ko: "ONA(디지털 네이티브) 작품의 연도별 증가 추이는?"
+    question_en: "Show the yearly trend of ONA (digital native) anime"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: TR03
+    category: trends
+    question_ko: "2015년 이후 작품의 평균 점수와 2015년 이전 작품의 평균 점수 차이는?"
+    question_en: "Compare average scores of anime before vs after 2015"
+    difficulty: easy
+    target_table: mart_content_performance
+
+  - id: TR04
+    category: trends
+    question_ko: "시즌별(Winter/Spring/Summer/Fall) 평균 점수와 작품 수 비교"
+    question_en: "Compare average score and anime count by season"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: TR05
+    category: trends
+    question_ko: "연도별 평균 드롭률의 변화 추이"
+    question_en: "Show the trend of average drop rate by year"
+    difficulty: hard
+    target_table: mart_content_performance
+
+  # ═══════════════════════════════════════════════════
+  # 카테고리 5: 비교/복합 (Comparison)
+  # ═══════════════════════════════════════════════════
+
+  - id: CM01
+    category: comparison
+    question_ko: "스튜디오별 평균 점수 상위 10개 (최소 20작품 이상)"
+    question_en: "Top 10 studios by average score (minimum 20 anime)"
+    difficulty: hard
+    target_table: mart_content_performance
+
+  - id: CM02
+    category: comparison
+    question_ko: "Action 장르와 Romance 장르의 평균 점수, 완주율, Members 비교"
+    question_en: "Compare Action vs Romance genres by score, completion rate, and members"
+    difficulty: medium
+    target_table: mart_genre_trends
+
+  - id: CM03
+    category: comparison
+    question_ko: "인기도 상위 10% 작품을 주로 보는 유저 vs 나머지 작품을 보는 유저의 평점 성향 차이"
+    question_en: "Compare rating tendencies of users who watch mostly Top 10% popular anime vs others"
+    difficulty: hard
+    target_table: mart_user_segments
+
+  - id: CM04
+    category: comparison
+    question_ko: "2000년대(2000-2009) vs 2010년대(2010-2019) 작품의 평균 드롭률과 완주율 변화"
+    question_en: "Compare drop rate and completion rate between 2000s and 2010s anime"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: CM05
+    category: comparison
+    question_ko: "Manga 원작 애니메이션 vs Light Novel 원작 vs Original의 성과 비교 (점수, 완주율, Members)"
+    question_en: "Compare Manga vs Light Novel vs Original anime by score, completion, and members"
+    difficulty: medium
+    target_table: mart_content_performance
+
+  - id: CM06
+    category: comparison
+    question_ko: "에피소드 수 구간별(1화, 2-12화, 13-26화, 27-52화, 52화+) 평균 점수와 완주율"
+    question_en: "Compare score and completion rate by episode count ranges"
+    difficulty: hard
+    target_table: mart_content_performance
+
+  - id: CM07
+    category: comparison
+    question_ko: "Members 상위 1% 작품의 장르 분포 vs 전체 작품의 장르 분포"
+    question_en: "Compare genre distribution of Top 1% popular anime vs all anime"
+    difficulty: hard
+    target_table: mart_content_performance
