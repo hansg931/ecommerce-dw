@@ -9,6 +9,9 @@ models:
         tests:
           - unique
           - not_null
+          - relationships:
+              to: ref('stg_anime')
+              field: anime_id
       - name: completion_rate
         description: "완주율 (Completed / Total List Entries)"
       - name: drop_rate

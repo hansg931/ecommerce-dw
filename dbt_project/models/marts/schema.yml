@@ -9,6 +9,9 @@ models:
         tests:
           - unique
           - not_null
+          - relationships:
+              to: ref('int_anime_stats')
+              field: anime_id
       - name: performance_score
         description: "종합 성과 점수 (Score 40% + Completion 30% + Members 20% + Low Drop 10%)"
       - name: completion_rate
@@ -24,6 +27,9 @@ models:
         tests:
           - unique
           - not_null
+          - relationships:
+              to: ref('int_user_profiles')
+              field: user_id
       - name: user_tier
         description: "활동 수준 (Power / Active / Regular / Casual)"
       - name: rating_tendency
@@ -39,6 +45,9 @@ models:
         tests:
           - unique
           - not_null
+          - relationships:
+              to: ref('int_genre_metrics')
+              field: genre
       - name: trend_category
         description: "트렌드 분류 (Growing / Declining / Stable)"
       - name: genre_health_score
