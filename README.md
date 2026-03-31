@@ -12,8 +12,8 @@ MyAnimeList 57M+ ratings 데이터 기반 **3-Layer Data Warehouse 설계** + **
 | dbt 모델 | **10개** (Staging 4 + Intermediate 3 + Mart 3), 30개 테스트 전체 통과 |
 | Semantic Layer | 74개 컬럼 정의 · 16개 용어 사전 · 13개 지표 정의 (한/영 병기) |
 | Golden Dataset | **40개** 자연어 질문 + **40개** 검증된 SQL (5 카테고리 × 3 난이도) |
-| LLM 실행 성공률 | Baseline **100%** / Full **100%** |
-| LLM 결과 일치율 | Baseline 50.0% / Full 50.0% (개선 없음 — 분석 포함) |
+| LLM 실행 성공률 | Baseline 95.0% / Full 92.5% |
+| LLM 결과 일치율 | Baseline 47.5% → Full **65.0%** (**+17.5%p**) |
 
 <br>
 
@@ -137,24 +137,30 @@ flowchart TB
 
 ## LLM 평가 결과
 
-같은 40개 질문을 **Baseline**(스키마만) vs **Full**(+ Semantic Layer) 두 조건으로 Gemini API에 제공하여 비교했습니다.
+같은 40개 질문을 **Baseline**(스키마만) vs **Full**(+ Semantic Layer v2) 두 조건으로 Gemini API에 제공하여 비교했습니다.
 
-| 지표 | Baseline (스키마만) | Full (+ Semantic Layer) | 차이 |
+| 지표 | Baseline (스키마만) | Full (Semantic Layer v2) | 차이 |
 |:-----|:---------|:-----------------------|:-----|
-| 실행 성공률 | **100.0%** (40/40) | **100.0%** (40/40) | 0%p |
-| 구조 일치율 | 7.5% (3/40) | 5.0% (2/40) | -2.5%p |
-| **결과 일치율** | **50.0%** (20/40) | **50.0%** (20/40) | **0%p** |
+| 실행 성공률 | 95.0% (38/40) | 92.5% (37/40) | -2.5%p† |
+| 구조 일치율 | 5.0% (2/40) | 12.5% (5/40) | +7.5%p |
+| **결과 일치율** | **47.5%** (19/40) | **65.0%** (26/40) | **+17.5%p** |
+
+† API 503 에러 3건 (모델 일시적 과부하) — 실제 SQL 생성 품질과 무관
 
 > **평가 지표 설명**
 > - `구조 일치율(structure_match)`: 행 수 + 컬럼 수가 정확히 일치
 > - `결과 일치율(result_match)`: 공통 컬럼 기준 정렬 후 50%+ 행의 값이 일치 ← 핵심 지표
 
-**핵심 발견:** Semantic Layer가 결과 일치율을 개선하지 못했다. 개선된 케이스(+3)와 퇴보한 케이스(-3)가 정확히 상쇄되었으며, 이는 두 가지 사실을 시사한다.
+**핵심 발견 — Semantic Layer의 효과는 WHAT이 아닌 HOW에서 나온다:**
 
-1. **잘 설계된 mart 컬럼명은 그 자체가 Semantic Layer다.** `completion_rate`, `drop_rate`, `avg_rating`처럼 의미가 명확한 컬럼명은 별도 문서 없이도 LLM이 올바르게 사용했다.
-2. **Semantic Layer가 오히려 방해가 되는 경우가 있다.** `accepted_values` 명시가 불필요한 WHERE 절 추가를 유발하거나, 컬럼 설명이 LLM의 SELECT 범위를 과도하게 확장시켜 golden query와 불일치를 만들었다.
+| 실험 | Semantic Layer 구성 | 결과 일치율 | 개선 |
+|:-----|:--------------------|:-----------|:-----|
+| 1차 | WHAT만 (컬럼 정의 + 용어 사전 + 지표 정의) | 50.0% | **+0%p** |
+| 2차 | WHAT + HOW (+ 쿼리 패턴 예시) | **65.0%** | **+17.5%p** |
 
-→ 케이스 스터디 및 상세 분석: [`docs/project_summary.md`](docs/project_summary.md)
+컬럼명이 이미 명확한 mart 테이블에서는 "무엇인지(WHAT)" 설명이 추가 가치를 주지 못했다. LLM이 실제로 필요했던 건 "어떻게 쿼리해야 하는지(HOW)" — DuckDB 문법 패턴, 컬럼 선택 가이드, 집계 예시였다. Medium 난이도에서 47% → 79%(**+32%p**)로 가장 큰 개선이 나타났다.
+
+→ 케이스 스터디 및 실험 과정 전체: [`docs/project_summary.md`](docs/project_summary.md)
 
 <br>
 

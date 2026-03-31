@@ -92,7 +92,7 @@ def get_semantic_prompt():
 
     parts = [schema, "\n\n--- SEMANTIC LAYER ---\n"]
 
-    for filename in ["table_definitions.yml", "business_glossary.yml", "metric_definitions.yml"]:
+    for filename in ["table_definitions.yml", "business_glossary.yml", "metric_definitions.yml", "query_patterns.yml"]:
         filepath = SEMANTIC_LAYER_DIR / filename
         if filepath.exists():
             with open(filepath) as f:

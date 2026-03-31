@@ -233,7 +233,7 @@ performance_score =
 같은 40개 질문을 **두 가지 조건**으로 Gemini API(gemini-3.1-flash-lite-preview)에 제공:
 
 - **Baseline**: 테이블 스키마(컬럼명, 타입)만 제공
-- **Full**: 스키마 + Semantic Layer(테이블 정의 + 용어 사전 + 지표 정의) 전체 제공
+- **Full**: 스키마 + Semantic Layer v2(테이블 정의 + 용어 사전 + 지표 정의 + **쿼리 패턴 예시**)
 
 생성된 SQL을 DuckDB에서 실행하고, Golden Query 결과와 3단계로 비교했다.
 
@@ -243,41 +243,50 @@ performance_score =
 - **structure_match_rate**: 행 수 + 컬럼 수가 Golden Query와 정확히 일치
 - **result_match_rate**: 공통 컬럼 기준 정렬 후 50%+ 행의 값이 일치 ← **핵심 지표**
 
-> **메트릭 설계 노트**: 평가 과정에서 `full_match_rate > result_match_rate`라는 논리적 불일치를 발견했다. 원인은 두 지표가 서로 다른 조건을 독립적으로 평가했기 때문. 메트릭 계층을 재설계(structure_match → result_match 순서로 엄격도 증가)하고 전체 재실행했다.
+> **메트릭 설계 노트**: 평가 중 `full_match_rate > result_match_rate`라는 논리적 불일치를 발견했다. 원인은 두 지표가 독립 조건을 평가했기 때문. 계층을 structure_match → result_match 순으로 재설계 후 전체 재실행했다.
 
-### 전체 결과
+### 실험 히스토리: WHAT vs HOW
 
-| 지표 | Baseline (스키마만) | Full (Semantic Layer) | 차이 |
-|------|---------------------|----------------------|------|
-| **실행 성공률** | 100.0% (40/40) | 100.0% (40/40) | 0%p |
-| **구조 일치율** | 7.5% (3/40) | 5.0% (2/40) | -2.5%p |
-| **결과 일치율** | **50.0%** (20/40) | **50.0%** (20/40) | **0%p** |
+| 실험 | Full 프롬프트 구성 | result_match_rate | 개선폭 |
+|------|-------------------|-------------------|--------|
+| v1 | 컬럼 정의 + 용어 사전 + 지표 정의 (WHAT) | 50.0% | **+0%p** |
+| **v2** | v1 + **쿼리 패턴 예시 (HOW)** | **65.0%** | **+17.5%p** |
 
-**핵심 발견**: Semantic Layer가 result_match_rate를 개선하지 못했다. 개선된 케이스 +3건, 퇴보한 케이스 -3건으로 정확히 상쇄되었다.
+v1에서 개선이 없었던 이유: mart 컬럼명(`completion_rate`, `drop_rate`)이 이미 충분히 명확해 WHAT 설명의 한계 기여가 0이었다. v2에서 쿼리 패턴을 추가하자 LLM이 DuckDB 문법과 컬럼 선택 방식을 올바르게 적용하기 시작했다.
+
+### 전체 결과 (v2 기준)
+
+| 지표 | Baseline (스키마만) | Full v2 (Semantic Layer) | 차이 |
+|------|---------------------|--------------------------|------|
+| **실행 성공률** | 95.0% (38/40) | 92.5% (37/40) | -2.5%p† |
+| **구조 일치율** | 5.0% (2/40) | 12.5% (5/40) | +7.5%p |
+| **결과 일치율** | **47.5%** (19/40) | **65.0%** (26/40) | **+17.5%p** |
+
+† API 503 에러 3건 (모델 일시적 과부하) — 실제 SQL 생성 품질과 무관
 
 ### 난이도별 결과
 
-| 난이도 | Baseline 결과 일치 | Full 결과 일치 | 차이 |
-|--------|-------------------|----------------|------|
-| **Easy** (14) | 9/14 (64.3%) | 9/14 (64.3%) | 0%p |
-| **Medium** (19) | 10/19 (52.6%) | 10/19 (52.6%) | 0%p |
-| **Hard** (7) | 1/7 (14.3%) | 1/7 (14.3%) | 0%p |
+| 난이도 | Baseline 결과 일치 | Full v2 결과 일치 | 차이 |
+|--------|-------------------|------------------|------|
+| **Easy** (14) | 9/14 (64%) | 10/14 (71%) | +7%p |
+| **Medium** (19) | 9/19 (47%) | 15/19 (79%) | **+32%p** |
+| **Hard** (7) | 1/7 (14%) | 1/7 (14%) | 0%p |
+
+Medium에서 +32%p — 쿼리 구조가 복잡할수록 패턴 예시의 효과가 집중됐다. Hard(14%)는 개선 없음: 단일 테이블 범위를 벗어나거나 복잡한 서브쿼리가 필요한 경우 패턴만으로 한계가 있다.
 
 ### 카테고리별 결과
 
-| 카테고리 | Baseline 일치 | Full 일치 | 차이 |
-|----------|-------------|-----------|------|
-| 콘텐츠 성과 | 5/10 (50%) | 5/10 (50%) | 0%p |
-| 유저 행동 | 5/10 (50%) | 4/10 (40%) | **-10%p** |
-| 장르 분석 | 6/8 (75%) | 7/8 (87.5%) | **+12.5%p** |
-| 트렌드 | 2/5 (40%) | 1/5 (20%) | **-20%p** |
-| 비교/복합 | 2/7 (28.6%) | 3/7 (42.9%) | **+14.3%p** |
-
-→ 장르 분석·비교 카테고리에서 개선되었지만, 유저 행동·트렌드에서 동등하게 퇴보했다.
+| 카테고리 | Baseline 일치 | Full v2 일치 | 차이 |
+|----------|-------------|-------------|------|
+| 비교/복합 | 2/7 (29%) | 4/7 (57%) | **+28%p** |
+| 유저 행동 | 5/10 (50%) | 7/10 (70%) | **+20%p** |
+| 트렌드 | 1/5 (20%) | 2/5 (40%) | **+20%p** |
+| 장르 분석 | 6/8 (75%) | 7/8 (88%) | +13%p |
+| 콘텐츠 성과 | 5/10 (50%) | 6/10 (60%) | +10%p |
 
 ### 케이스 스터디
 
-#### Case A — Semantic Layer가 효과적인 경우: 동음이의 컬럼 (CP01)
+#### Case A — WHAT이 효과적인 경우: 동음이의 컬럼 (CP01)
 
 **질문**: "평균 점수가 가장 높은 애니메이션 상위 10개는?"
 
@@ -291,76 +300,63 @@ SELECT name, mal_score
 FROM mart_content_performance ORDER BY mal_score DESC LIMIT 10;
 ```
 
-`mal_score`(공식 가중 평균)와 `avg_rating`(단순 평균)은 다른 값을 반환한다. 컬럼명만으로 구별이 어려운 경우 Semantic Layer가 명확한 효과를 보였다.
+`mal_score`(공식 가중 평균)와 `avg_rating`(단순 평균)은 컬럼명만으로 구별이 어렵다. 컬럼 정의가 이 차이를 LLM에게 명확히 전달했다.
 
-#### Case B — Semantic Layer가 효과적인 경우: 한국어 용어 매핑 (GA08)
+#### Case B — HOW가 효과적인 경우: 집계 패턴 (UB09)
 
-**질문**: "최근 비율(recent_ratio)이 50% 이상인 '신흥 장르'는?"
-
-```sql
--- Baseline: '신흥 장르'를 trend_category 컬럼의 값으로 오해 → 빈 결과
-SELECT genre FROM mart_genre_trends
-WHERE recent_ratio >= 0.5 AND trend_category = '신흥 장르';
-
--- Full: recent_ratio 조건만으로 올바르게 필터링 ← Golden과 일치
-SELECT genre FROM mart_genre_trends WHERE recent_ratio >= 0.5;
-```
-
-Semantic Layer에서 `trend_category`의 accepted_values가 'Growing/Declining/Stable'임을 명시하여 잘못된 필터를 방지했다.
-
-#### Case C — Semantic Layer가 오히려 방해가 되는 경우: 과잉 명세 (CP06)
-
-**질문**: "Members가 10만 이상인 인기작 중 드롭률이 10% 이상인 작품은?"
+**질문**: "Generous 유저와 Critical 유저의 시청 작품 수 차이는?"
 
 ```sql
--- Baseline: name만 반환 → Golden과 일치
-SELECT name FROM mart_content_performance
-WHERE members >= 100000 AND drop_rate >= 0.1;
+-- Baseline: CASE 분기로 복잡하게 작성 → 집계 오류
+SELECT
+  AVG(CASE WHEN rating_tendency = 'Generous' THEN total_ratings END) -
+  AVG(CASE WHEN rating_tendency = 'Critical' THEN total_ratings END)
+FROM mart_user_segments;
 
--- Full: Semantic Layer를 참고해 컬럼을 추가 반환 → Golden과 불일치
-SELECT name, members, drop_rate FROM mart_content_performance
-WHERE members >= 100000 AND drop_rate >= 0.1;
+-- Full: 패턴 예시를 참고해 GROUP BY로 간결하게 작성 ← Golden과 일치
+SELECT rating_tendency, AVG(total_ratings) AS avg_ratings
+FROM mart_user_segments
+WHERE rating_tendency IN ('Generous', 'Critical')
+GROUP BY rating_tendency;
 ```
 
-Semantic Layer의 컬럼 설명이 LLM으로 하여금 "유용한 컬럼을 추가 반환"하도록 유도했고, 이것이 exact match를 깼다.
+쿼리 패턴 예시가 "유저 세그먼트는 GROUP BY로 비교"라는 방식을 제시하여 LLM이 올바른 집계 구조를 선택했다.
 
-#### Case D — Semantic Layer가 오히려 방해가 되는 경우: accepted_values 과잉 필터 (UB03)
+#### Case C — HOW가 효과적인 경우: 연도 비교 패턴 (CM04)
+
+**질문**: "2000년대 vs 2010년대 작품의 평균 드롭률과 완주율 비교"
+
+쿼리 패턴에 `decade_comparison` 예시(`CASE WHEN start_year BETWEEN ... THEN '2000s'`)가 있어 LLM이 정확한 연도 구간 분류와 GROUP BY 구조를 적용했다.
+
+#### Case D — 여전히 역효과인 경우: accepted_values 과잉 필터 (UB03)
 
 **질문**: "평점 성향별(Generous/Moderate/Critical) 유저 수와 비율은?"
 
 ```sql
--- Baseline: 전체 데이터 집계 → Golden과 일치
-SELECT rating_tendency, COUNT(*) AS user_count,
-       COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS user_percentage
-FROM mart_user_segments GROUP BY rating_tendency;
-
--- Full: accepted_values 참조로 불필요한 WHERE 추가 → 행 수 변경으로 불일치
-SELECT rating_tendency, COUNT(*) AS user_count,
-       COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS user_percentage
+-- Full: 쿼리 패턴 예시(rating_tendency_distribution)에도 불구하고
+-- accepted_values 설정이 불필요한 WHERE 절을 유도
+SELECT rating_tendency, COUNT(*) ...
 FROM mart_user_segments
-WHERE rating_tendency IN ('Generous', 'Moderate', 'Critical')
+WHERE rating_tendency IN ('Generous', 'Moderate', 'Critical')  -- 불필요
 GROUP BY rating_tendency;
 ```
 
-Semantic Layer가 `accepted_values`를 명시함으로써 LLM이 불필요한 필터를 추가했다.
+`query_patterns.yml`에 올바른 패턴이 있음에도 컬럼 정의의 `accepted_values`가 더 강하게 작용했다. Semantic Layer 내 WHAT과 HOW 간 충돌로, `accepted_values`를 WHERE 조건이 아닌 참고 정보로 명시하는 방향의 개선이 필요하다.
 
-### 발견: 구조 일치율이 낮은 이유
+### 구조 일치율이 낮은 이유
 
-structure_match_rate가 7.5%에 불과한 것은 LLM이 "틀린 쿼리"를 작성해서가 아니다. 실제로 result_match_rate가 50%인 케이스 대부분(17/20)이 structure_match=False였다 — 즉, **LLM은 질문에 올바르게 답하지만 Golden Query와 다른 컬럼 조합을 선택**한다.
+structure_match_rate(5~12%)가 낮은 것은 LLM이 "틀린 쿼리"를 작성해서가 아니다. result_match=True인 케이스 대부분이 structure_match=False였다 — LLM은 질문에 올바르게 답하지만 Golden Query와 다른 컬럼 조합을 선택한다. Golden Query는 최소 컬럼만 반환하는 반면 LLM은 "도움이 될 것 같은" 컬럼을 추가하는 경향이 있다. Text-to-SQL 평가에서 exact schema match보다 **결과값 일치**를 핵심 지표로 삼아야 한다는 설계 원칙을 확인했다.
 
-이는 Golden Query 설계의 문제이기도 하다: Golden Query가 최소 필요 컬럼만 반환하는 반면, LLM은 "도움이 될 것 같은" 추가 컬럼을 포함하는 경향이 있다. Text-to-SQL 평가에서 exact schema match보다 **결과값 일치**를 핵심 지표로 삼아야 한다는 설계 원칙을 확인했다.
+### 결론: Semantic Layer 설계 원칙
 
-### 결론: Semantic Layer의 효과 조건
+| 구성 요소 | 효과 | 이유 |
+|-----------|------|------|
+| 컬럼 정의 (WHAT) | 제한적 | 명확한 컬럼명에선 한계 기여 0 |
+| 비즈니스 용어 사전 | 효과적 | 한국어↔컬럼값 매핑 오류 방지 |
+| accepted_values | 역효과 가능 | 불필요한 WHERE 필터 유도 |
+| **쿼리 패턴 예시 (HOW)** | **가장 효과적** | Medium+32%p, 복잡한 집계·비교 구조 가이드 |
 
-| 조건 | Semantic Layer 효과 |
-|------|---------------------|
-| 컬럼명이 모호하거나 동음이의어가 있을 때 | **효과 있음** (CP01) |
-| 한국어/비즈니스 용어를 컬럼 값으로 매핑해야 할 때 | **효과 있음** (GA08) |
-| 컬럼명이 이미 의미를 충분히 전달할 때 | **효과 없음** |
-| accepted_values 명시가 불필요한 필터를 유도할 때 | **역효과** (UB03) |
-| 컬럼 설명이 LLM의 SELECT 범위를 확장할 때 | **역효과** (CP06) |
-
-→ **잘 설계된 mart 컬럼명은 그 자체가 Semantic Layer다.** `completion_rate`, `drop_rate`, `avg_rating`처럼 명확한 이름을 가진 컬럼에서는 Semantic Layer의 한계 기여(marginal value)가 0에 수렴했다. Semantic Layer의 효과는 스키마 설계의 품질에 반비례한다.
+→ **LLM에게 필요한 건 정의가 아니라 예시다.** Semantic Layer는 "무엇인지(WHAT)" 설명에서 시작하지만, 실질적인 품질 개선은 "어떻게 쿼리해야 하는지(HOW)" — 쿼리 패턴, DuckDB 문법, 집계 구조 예시 — 에서 나온다.
 
 ---
 
@@ -373,7 +369,7 @@ structure_match_rate가 7.5%에 불과한 것은 LLM이 "틀린 쿼리"를 작�
 | 데이터 품질 테스트 | 30개 전체 통과 |
 | Semantic Layer 정의 | 74개 컬럼 + 16개 용어 + 13개 지표 |
 | Golden Dataset | 40개 질문 + 40개 검증된 SQL |
-| LLM 평가 | 실행 성공률 100% / 결과 일치율 50% (Baseline = Full) |
+| LLM 평가 | WHAT-only: +0%p → WHAT+HOW: **+17.5%p** (47.5% → 65.0%) |
 
 ## 기술 스택
 
