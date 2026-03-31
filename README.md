@@ -2,6 +2,8 @@
 
 MyAnimeList 57M+ ratings 데이터 기반 **3-Layer Data Warehouse 설계** + **Semantic Layer 구축** + **LLM Text-to-SQL Golden Dataset 검증** 프로젝트
 
+[노션 링크](https://cut-bookcase-f3b.notion.site/327d9632993e8038a564e380ac954fee?pvs=73)
+
 <br>
 
 ## 핵심 수치
