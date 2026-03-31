@@ -12,8 +12,8 @@ MyAnimeList 57M+ ratings 데이터 기반 **3-Layer Data Warehouse 설계** + **
 | dbt 모델 | **10개** (Staging 4 + Intermediate 3 + Mart 3), 30개 테스트 전체 통과 |
 | Semantic Layer | 74개 컬럼 정의 · 16개 용어 사전 · 13개 지표 정의 (한/영 병기) |
 | Golden Dataset | **40개** 자연어 질문 + **40개** 검증된 SQL (5 카테고리 × 3 난이도) |
-| LLM 실행 성공률 | Baseline 97.5% / Full 97.5% |
-| LLM 결과 일치율 | Baseline 32.5% → Full **37.5%** (+5.0%p) |
+| LLM 실행 성공률 | Baseline **100%** / Full **100%** |
+| LLM 결과 일치율 | Baseline 50.0% / Full 50.0% (개선 없음 — 분석 포함) |
 
 <br>
 
@@ -139,15 +139,22 @@ flowchart TB
 
 같은 40개 질문을 **Baseline**(스키마만) vs **Full**(+ Semantic Layer) 두 조건으로 Gemini API에 제공하여 비교했습니다.
 
-| 지표 | Baseline (스키마만) | Full (+ Semantic Layer) | 개선 |
+| 지표 | Baseline (스키마만) | Full (+ Semantic Layer) | 차이 |
 |:-----|:---------|:-----------------------|:-----|
-| 실행 성공률 | 97.5% (39/40) | 97.5% (39/40) | 0%p |
-| 결과 일치율 | 32.5% (13/40) | **37.5%** (15/40) | +5.0%p |
-| 전체 결과 일치율 | 47.5% (19/40) | **55.0%** (22/40) | +7.5%p |
+| 실행 성공률 | **100.0%** (40/40) | **100.0%** (40/40) | 0%p |
+| 구조 일치율 | 7.5% (3/40) | 5.0% (2/40) | -2.5%p |
+| **결과 일치율** | **50.0%** (20/40) | **50.0%** (20/40) | **0%p** |
 
-**한계:** Semantic Layer는 컬럼의 의미(WHAT)를 전달하는 데 효과적이었지만, 쿼리 패턴(HOW) — UNNEST, 시계열 GROUP BY, 다중 테이블 조인 등 — 은 안내하지 못했습니다. Medium/Hard 난이도와 비교/복합 카테고리에서 개선이 없었으며, 쿼리 패턴 예시나 Few-shot 프롬프팅 등 추가 실험이 필요합니다.
+> **평가 지표 설명**
+> - `구조 일치율(structure_match)`: 행 수 + 컬럼 수가 정확히 일치
+> - `결과 일치율(result_match)`: 공통 컬럼 기준 정렬 후 50%+ 행의 값이 일치 ← 핵심 지표
 
-→ 난이도별·카테고리별 상세 분석, 케이스 스터디: [`docs/project_summary.md`](docs/project_summary.md)
+**핵심 발견:** Semantic Layer가 결과 일치율을 개선하지 못했다. 개선된 케이스(+3)와 퇴보한 케이스(-3)가 정확히 상쇄되었으며, 이는 두 가지 사실을 시사한다.
+
+1. **잘 설계된 mart 컬럼명은 그 자체가 Semantic Layer다.** `completion_rate`, `drop_rate`, `avg_rating`처럼 의미가 명확한 컬럼명은 별도 문서 없이도 LLM이 올바르게 사용했다.
+2. **Semantic Layer가 오히려 방해가 되는 경우가 있다.** `accepted_values` 명시가 불필요한 WHERE 절 추가를 유발하거나, 컬럼 설명이 LLM의 SELECT 범위를 과도하게 확장시켜 golden query와 불일치를 만들었다.
+
+→ 케이스 스터디 및 상세 분석: [`docs/project_summary.md`](docs/project_summary.md)
 
 <br>
 

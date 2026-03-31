@@ -20,10 +20,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -43,10 +43,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -66,10 +66,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -122,10 +122,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 8,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 8
         }
       },
       {
@@ -133,12 +133,12 @@
         "question": "IP 기반(원작 있는) 작품과 오리지널 작품의 평균 점수, 완주율, 드롭률 비교",
         "category": "content_performance",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    source_category, \n    AVG(mal_score) AS avg_mal_score, \n    AVG(completion_rate) AS avg_completion_rate, \n    AVG(drop_rate) AS avg_drop_rate \nFROM main_marts.mart_content_performance \nWHERE source_category IN ('IP 기반', '오리지널') \nGROUP BY source_category;",
+        "generated_sql": "SELECT \n    CASE WHEN source_material = 'Original' THEN 'Original' ELSE 'Adapted' END AS source_type,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate,\n    AVG(drop_rate) AS avg_drop_rate\nFROM main_marts.mart_content_performance\nGROUP BY 1;",
         "execution": {
           "success": true,
-          "row_count": 0,
+          "row_count": 2,
           "columns": [
-            "source_category",
+            "source_type",
             "avg_mal_score",
             "avg_completion_rate",
             "avg_drop_rate"
@@ -147,10 +147,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 3,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -169,10 +169,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -180,12 +180,12 @@
         "question": "디지털 네이티브(ONA) 작품 vs TV 작품의 평균 점수와 완주율 비교",
         "category": "content_performance",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    CASE WHEN is_digital_native THEN 'Digital Native' ELSE 'TV' END AS content_type,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nWHERE type IN ('ONA', 'TV')\nGROUP BY 1;",
+        "generated_sql": "SELECT type, AVG(mal_score) AS avg_mal_score, AVG(completion_rate) AS avg_completion_rate FROM main_marts.mart_content_performance WHERE type IN ('ONA', 'TV') GROUP BY type;",
         "execution": {
           "success": true,
           "row_count": 2,
           "columns": [
-            "content_type",
+            "type",
             "avg_mal_score",
             "avg_completion_rate"
           ]
@@ -193,10 +193,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
-          "first_row_match": false,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": false
+          "structure_match": false,
+          "first_row_match": true,
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -217,10 +217,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
-          "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "structure_match": false,
+          "first_row_match": false,
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -228,7 +228,7 @@
         "question": "인기도 상위 1% 작품의 평균 점수, 완주율, 장르 분포는?",
         "category": "content_performance",
         "difficulty": "hard",
-        "generated_sql": "SELECT AVG(mal_score) AS avg_mal_score, AVG(completion_rate) AS avg_completion_rate, genres FROM main_marts.mart_content_performance WHERE popularity_rank <= (SELECT COUNT(*) * 0.01 FROM main_marts.mart_content_performance) GROUP BY genres;",
+        "generated_sql": "SELECT AVG(mal_score) AS avg_mal_score, AVG(completion_rate) AS avg_completion_rate, genres FROM main_marts.mart_content_performance WHERE popularity_rank <= (SELECT COUNT(*) * 0.01 FROM main_marts.mart_content_performance) GROUP BY genres",
         "execution": {
           "success": true,
           "row_count": 149,
@@ -241,10 +241,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -252,16 +252,22 @@
         "question": "2010년대(2010-2019) 작품 중 종합 성과 점수 상위 50개의 스튜디오별 분포는?",
         "category": "content_performance",
         "difficulty": "hard",
-        "generated_sql": "SELECT studios, COUNT(*) AS count FROM main_marts.mart_content_performance WHERE start_year BETWEEN 2010 AND 2019 GROUP BY studios ORDER BY (SELECT performance_score FROM main_marts.mart_content_performance LIMIT 50) DESC LIMIT 50;",
+        "generated_sql": "SELECT studios, COUNT(*) AS count FROM main_marts.mart_content_performance WHERE start_year BETWEEN 2010 AND 2019 GROUP BY studios ORDER BY (SELECT performance_score FROM main_marts.mart_content_performance ORDER BY performance_score DESC LIMIT 1 OFFSET 49) DESC, count DESC;",
         "execution": {
-          "success": false,
-          "error": "Invalid Input Error: More than one row returned by a subquery used as an expression - scalar subqueries can only return a single row.\n\nUse \"SET scalar_subquery_error_on_multiple_rows=false\" to revert to previous behavior of returning a random row.",
-          "error_type": "other_error"
+          "success": true,
+          "row_count": 647,
+          "columns": [
+            "studios",
+            "count"
+          ]
         },
         "match": {
           "row_match": false,
           "col_match": false,
-          "result_match": false
+          "structure_match": false,
+          "first_row_match": false,
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -269,7 +275,7 @@
         "question": "유저 티어별(Power/Active/Regular/Casual) 평균 평점과 유저 수는?",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT user_tier, AVG(avg_rating) AS avg_rating, COUNT(*) AS user_count FROM main_marts.mart_user_segments GROUP BY user_tier;",
+        "generated_sql": "SELECT user_tier, AVG(avg_rating) AS avg_rating, COUNT(*) AS user_count FROM main_marts.mart_user_segments GROUP BY user_tier",
         "execution": {
           "success": true,
           "row_count": 4,
@@ -282,10 +288,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 3,
-          "result_match": false
+          "result_match": true,
+          "common_columns": 3
         }
       },
       {
@@ -293,7 +299,7 @@
         "question": "파워유저(Power tier)의 평균 평점과 일반 유저의 평균 평점 차이는?",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT (SELECT AVG(avg_rating) FROM main_marts.mart_user_segments WHERE user_tier = 'Power') - (SELECT AVG(avg_rating) FROM main_marts.mart_user_segments WHERE user_tier = 'General') AS rating_difference;",
+        "generated_sql": "SELECT\n  MAX(CASE WHEN user_tier = 'Power' THEN avg_rating END) - MAX(CASE WHEN user_tier = 'General' THEN avg_rating END) AS rating_difference\nFROM (\n  SELECT\n    user_tier,\n    AVG(avg_rating) AS avg_rating\n  FROM main_marts.mart_user_segments\n  WHERE user_tier IN ('Power', 'General')\n  GROUP BY user_tier\n);",
         "execution": {
           "success": true,
           "row_count": 1,
@@ -304,10 +310,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -315,23 +321,23 @@
         "question": "평점 성향별(Generous/Moderate/Critical) 유저 수와 비율은?",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT\n  rating_tendency,\n  COUNT(user_id) AS user_count,\n  COUNT(user_id) * 1.0 / SUM(COUNT(user_id)) OVER () AS user_ratio\nFROM main_marts.mart_user_segments\nGROUP BY rating_tendency;",
+        "generated_sql": "SELECT rating_tendency, COUNT(*) AS user_count, COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS user_percentage FROM main_marts.mart_user_segments GROUP BY rating_tendency;",
         "execution": {
           "success": true,
           "row_count": 4,
           "columns": [
             "rating_tendency",
             "user_count",
-            "user_ratio"
+            "user_percentage"
           ]
         },
         "match": {
           "row_match": true,
           "col_match": true,
+          "structure_match": true,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -339,7 +345,7 @@
         "question": "가장 많은 작품을 본 유저 상위 10명의 프로필 (총 평점, 평균 평점, 시청 다양성)",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT total_ratings, avg_rating, viewing_diversity\nFROM main_marts.mart_user_segments\nORDER BY total_ratings DESC\nLIMIT 10;",
+        "generated_sql": "SELECT total_ratings, avg_rating, viewing_diversity\nFROM main_marts.mart_user_segments\nORDER BY unique_anime_rated DESC\nLIMIT 10;",
         "execution": {
           "success": true,
           "row_count": 10,
@@ -352,10 +358,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 3,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 3
         }
       },
       {
@@ -375,10 +381,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -386,21 +392,22 @@
         "question": "드롭 성향이 'High Dropper'인 유저들이 가장 많이 시청한 장르는?",
         "category": "user_behavior",
         "difficulty": "medium",
-        "generated_sql": "SELECT most_watched_genres FROM main_marts.mart_user_segments WHERE drop_tendency = 'High Dropper' GROUP BY most_watched_genres ORDER BY COUNT(*) DESC LIMIT 1;",
+        "generated_sql": "SELECT most_watched_genres, COUNT(*) as count FROM main_marts.mart_user_segments WHERE drop_tendency = 'High Dropper' GROUP BY most_watched_genres ORDER BY count DESC LIMIT 1;",
         "execution": {
           "success": true,
           "row_count": 1,
           "columns": [
-            "most_watched_genres"
+            "most_watched_genres",
+            "count"
           ]
         },
         "match": {
           "row_match": false,
-          "col_match": false,
+          "col_match": true,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -422,10 +429,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -433,22 +440,22 @@
         "question": "평균 평점이 9점 이상인 유저는 몇 명이고, 이들의 총 평점 수 평균은?",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT count(*), avg(total_ratings) FROM main_marts.mart_user_segments WHERE avg_rating >= 9;",
+        "generated_sql": "SELECT COUNT(user_id), AVG(total_ratings) FROM main_marts.mart_user_segments WHERE avg_rating >= 9.0;",
         "execution": {
           "success": true,
           "row_count": 1,
           "columns": [
-            "count_star()",
+            "count(user_id)",
             "avg(total_ratings)"
           ]
         },
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -456,7 +463,7 @@
         "question": "Generous 유저(평균 8.5+)와 Critical 유저(5.5~7.0)의 시청 작품 수 차이는?",
         "category": "user_behavior",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n  (SELECT AVG(unique_anime_rated) FROM main_marts.mart_user_segments WHERE avg_rating > 8.5) - \n  (SELECT AVG(unique_anime_rated) FROM main_marts.mart_user_segments WHERE avg_rating BETWEEN 5.5 AND 7.0) \n  AS difference_in_anime_count;",
+        "generated_sql": "SELECT \n    ABS(\n        (SELECT AVG(unique_anime_rated) FROM main_marts.mart_user_segments WHERE avg_rating > 8.5) -\n        (SELECT AVG(unique_anime_rated) FROM main_marts.mart_user_segments WHERE avg_rating BETWEEN 5.5 AND 7.0)\n    ) AS difference_in_anime_count;",
         "execution": {
           "success": true,
           "row_count": 1,
@@ -467,10 +474,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -510,10 +517,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 6,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 6
         }
       },
       {
@@ -534,10 +541,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -557,10 +564,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -568,7 +575,7 @@
         "question": "장르 건강도 점수(genre_health_score) 상위 10개 장르는?",
         "category": "genre_analysis",
         "difficulty": "easy",
-        "generated_sql": "SELECT genre FROM main_marts.mart_genre_trends ORDER BY genre_health_score DESC LIMIT 10;",
+        "generated_sql": "SELECT genre\nFROM main_marts.mart_genre_trends\nORDER BY genre_health_score DESC\nLIMIT 10;",
         "execution": {
           "success": true,
           "row_count": 10,
@@ -579,10 +586,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -602,10 +609,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -626,10 +633,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -637,22 +644,23 @@
         "question": "완주율이 가장 높은 장르 vs 드롭률이 가장 높은 장르 비교",
         "category": "genre_analysis",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    (SELECT genre FROM main_marts.mart_genre_trends ORDER BY avg_completion_rate DESC LIMIT 1) AS highest_completion_genre,\n    (SELECT genre FROM main_marts.mart_genre_trends ORDER BY avg_drop_rate DESC LIMIT 1) AS highest_drop_genre;",
+        "generated_sql": "SELECT genre, avg_completion_rate, avg_drop_rate FROM main_marts.mart_genre_trends WHERE avg_completion_rate = (SELECT MAX(avg_completion_rate) FROM main_marts.mart_genre_trends) OR avg_drop_rate = (SELECT MAX(avg_drop_rate) FROM main_marts.mart_genre_trends);",
         "execution": {
           "success": true,
-          "row_count": 1,
+          "row_count": 2,
           "columns": [
-            "highest_completion_genre",
-            "highest_drop_genre"
+            "genre",
+            "avg_completion_rate",
+            "avg_drop_rate"
           ]
         },
         "match": {
           "row_match": false,
           "col_match": false,
-          "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "structure_match": false,
+          "first_row_match": true,
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -672,10 +680,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -694,10 +702,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -705,7 +713,7 @@
         "question": "연도별 애니메이션 작품 수 트렌드 (2000년 이후)",
         "category": "trends",
         "difficulty": "medium",
-        "generated_sql": "SELECT start_year, COUNT(anime_id) AS anime_count FROM main_marts.mart_content_performance WHERE start_year >= 2000 GROUP BY start_year ORDER BY start_year ASC;",
+        "generated_sql": "SELECT start_year, COUNT(*) AS anime_count FROM main_marts.mart_content_performance WHERE start_year >= 2000 GROUP BY start_year ORDER BY start_year;",
         "execution": {
           "success": true,
           "row_count": 23,
@@ -717,10 +725,10 @@
         "match": {
           "row_match": true,
           "col_match": true,
+          "structure_match": true,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -728,7 +736,7 @@
         "question": "ONA(디지털 네이티브) 작품의 연도별 증가 추이는?",
         "category": "trends",
         "difficulty": "medium",
-        "generated_sql": "SELECT start_year, count(*) as ona_count FROM main_marts.mart_content_performance WHERE type = 'ONA' AND is_digital_native = TRUE GROUP BY start_year ORDER BY start_year;",
+        "generated_sql": "SELECT start_year, COUNT(*) AS ona_count FROM main_marts.mart_content_performance WHERE type = 'ONA' AND is_digital_native = TRUE GROUP BY start_year ORDER BY start_year;",
         "execution": {
           "success": true,
           "row_count": 26,
@@ -740,10 +748,10 @@
         "match": {
           "row_match": false,
           "col_match": true,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -751,7 +759,7 @@
         "question": "2015년 이후 작품의 평균 점수와 2015년 이전 작품의 평균 점수 차이는?",
         "category": "trends",
         "difficulty": "easy",
-        "generated_sql": "SELECT \n    AVG(CASE WHEN start_year >= 2015 THEN mal_score END) - AVG(CASE WHEN start_year < 2015 THEN mal_score END) \nFROM main_marts.mart_content_performance \nWHERE start_year IS NOT NULL;",
+        "generated_sql": "SELECT AVG(CASE WHEN start_year >= 2015 THEN mal_score END) - AVG(CASE WHEN start_year < 2015 THEN mal_score END) FROM main_marts.mart_content_performance;",
         "execution": {
           "success": true,
           "row_count": 1,
@@ -762,10 +770,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -773,23 +781,23 @@
         "question": "시즌별(Winter/Spring/Summer/Fall) 평균 점수와 작품 수 비교",
         "category": "trends",
         "difficulty": "medium",
-        "generated_sql": "SELECT season, AVG(mal_score) AS avg_mal_score, COUNT(anime_id) AS anime_count FROM main_marts.mart_content_performance GROUP BY season;",
+        "generated_sql": "SELECT season, AVG(mal_score) AS avg_score, COUNT(*) AS anime_count FROM main_marts.mart_content_performance WHERE season IS NOT NULL GROUP BY season;",
         "execution": {
           "success": true,
-          "row_count": 5,
+          "row_count": 4,
           "columns": [
             "season",
-            "avg_mal_score",
+            "avg_score",
             "anime_count"
           ]
         },
         "match": {
-          "row_match": false,
+          "row_match": true,
           "col_match": true,
-          "first_row_match": false,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "structure_match": true,
+          "first_row_match": true,
+          "result_match": true,
+          "common_columns": 3
         }
       },
       {
@@ -809,10 +817,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -820,7 +828,7 @@
         "question": "스튜디오별 평균 점수 상위 10개 (최소 20작품 이상)",
         "category": "comparison",
         "difficulty": "hard",
-        "generated_sql": "SELECT studios, AVG(mal_score) AS avg_score\nFROM main_marts.mart_content_performance\nGROUP BY studios\nHAVING COUNT(*) >= 20\nORDER BY avg_score DESC\nLIMIT 10;",
+        "generated_sql": "SELECT studios, AVG(mal_score) AS avg_score\nFROM main_marts.mart_content_performance\nGROUP BY studios\nHAVING COUNT(anime_id) >= 20\nORDER BY avg_score DESC\nLIMIT 10;",
         "execution": {
           "success": true,
           "row_count": 10,
@@ -832,10 +840,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -857,10 +865,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -868,24 +876,24 @@
         "question": "인기도 상위 10% 작품을 주로 보는 유저 vs 나머지 작품을 보는 유저의 평점 성향 차이",
         "category": "comparison",
         "difficulty": "hard",
-        "generated_sql": "WITH TopPopularAnime AS (\n    SELECT anime_id\n    FROM main_marts.mart_content_performance\n    WHERE popularity_rank <= (SELECT COUNT(*) * 0.1 FROM main_marts.mart_content_performance)\n),\nUserPreferences AS (\n    SELECT \n        u.user_id,\n        AVG(CASE WHEN p.anime_id IN (SELECT anime_id FROM TopPopularAnime) THEN 1.0 ELSE 0.0 END) as preference_for_popular\n    FROM main_marts.mart_user_segments u\n    JOIN main_marts.mart_content_performance p ON 1=1 -- Note: This assumes linkage via user activity, simplified here based on provided schema context\n    GROUP BY u.user_id\n)\nSELECT \n    CASE WHEN preference_for_popular >= 0.5 THEN 'Popular_Oriented' ELSE 'Other_Oriented' END as user_group,\n    AVG(avg_rating) as avg_rating_of_users,\n    AVG(high_rating_ratio) as avg_high_rating_ratio,\n    AVG(low_rating_ratio) as avg_low_rating_ratio\nFROM main_marts.mart_user_segments u\nJOIN UserPreferences up ON u.user_id = up.user_id\nGROUP BY 1;",
+        "generated_sql": "WITH popularity_threshold AS (\n    SELECT percentile_cont(0.9) WITHIN GROUP (ORDER BY popularity_rank) as threshold\n    FROM main_marts.mart_content_performance\n),\nuser_preference AS (\n    SELECT \n        u.user_id,\n        SUM(CASE WHEN c.popularity_rank <= p.threshold THEN 1 ELSE 0 END) as popular_count,\n        SUM(CASE WHEN c.popularity_rank > p.threshold THEN 1 ELSE 0 END) as other_count\n    FROM main_marts.mart_user_segments u\n    CROSS JOIN popularity_threshold p\n    JOIN main_marts.mart_content_performance c ON 1=1 -- Note: Requires joining user watch history, assuming mart_user_segments maps to content engagement\n    GROUP BY u.user_id\n),\nuser_groups AS (\n    SELECT \n        user_id,\n        CASE WHEN popular_count >= other_count THEN 'Popular_Oriented' ELSE 'Other_Oriented' END as user_group\n    FROM user_preference\n)\nSELECT \n    g.user_group,\n    AVG(u.avg_rating) as avg_rating,\n    AVG(u.stddev_rating) as avg_stddev_rating,\n    AVG(u.high_rating_ratio) as avg_high_rating_ratio\nFROM main_marts.mart_user_segments u\nJOIN user_groups g ON u.user_id = g.user_id\nGROUP BY g.user_group;",
         "execution": {
           "success": true,
           "row_count": 1,
           "columns": [
             "user_group",
-            "avg_rating_of_users",
-            "avg_high_rating_ratio",
-            "avg_low_rating_ratio"
+            "avg_rating",
+            "avg_stddev_rating",
+            "avg_high_rating_ratio"
           ]
         },
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -906,10 +914,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 3,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 3
         }
       },
       {
@@ -917,7 +925,7 @@
         "question": "Manga 원작 애니메이션 vs Light Novel 원작 vs Original의 성과 비교 (점수, 완주율, Members)",
         "category": "comparison",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    source_material, \n    AVG(mal_score) AS avg_mal_score, \n    AVG(completion_rate) AS avg_completion_rate, \n    AVG(members) AS avg_members \nFROM main_marts.mart_content_performance \nWHERE source_material IN ('Manga', 'Light Novel', 'Original') \nGROUP BY source_material;",
+        "generated_sql": "SELECT source_material, AVG(mal_score) AS avg_mal_score, AVG(completion_rate) AS avg_completion_rate, AVG(members) AS avg_members FROM main_marts.mart_content_performance WHERE source_material IN ('Manga', 'Light Novel', 'Original') GROUP BY source_material;",
         "execution": {
           "success": true,
           "row_count": 2,
@@ -931,10 +939,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -942,10 +950,10 @@
         "question": "에피소드 수 구간별(1화, 2-12화, 13-26화, 27-52화, 52화+) 평균 점수와 완주율",
         "category": "comparison",
         "difficulty": "hard",
-        "generated_sql": "SELECT \n    CASE \n        WHEN episodes = 1 THEN '1화'\n        WHEN episodes BETWEEN 2 AND 12 THEN '2-12화'\n        WHEN episodes BETWEEN 13 AND 26 THEN '13-26화'\n        WHEN episodes BETWEEN 27 AND 52 THEN '27-52화'\n        WHEN episodes > 52 THEN '52화+'\n        ELSE '기타'\n    END AS episode_range,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nGROUP BY 1\nORDER BY \n    CASE \n        WHEN episode_range = '1화' THEN 1\n        WHEN episode_range = '2-12화' THEN 2\n        WHEN episode_range = '13-26화' THEN 3\n        WHEN episode_range = '27-52화' THEN 4\n        WHEN episode_range = '52화+' THEN 5\n        ELSE 6\n    END;",
+        "generated_sql": "SELECT \n    CASE \n        WHEN episodes = 1 THEN '1화'\n        WHEN episodes BETWEEN 2 AND 12 THEN '2-12화'\n        WHEN episodes BETWEEN 13 AND 26 THEN '13-26화'\n        WHEN episodes BETWEEN 27 AND 52 THEN '27-52화'\n        ELSE '52화+'\n    END AS episode_range,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nGROUP BY 1\nORDER BY \n    CASE \n        WHEN episode_range = '1화' THEN 1\n        WHEN episode_range = '2-12화' THEN 2\n        WHEN episode_range = '13-26화' THEN 3\n        WHEN episode_range = '27-52화' THEN 4\n        ELSE 5\n    END;",
         "execution": {
           "success": true,
-          "row_count": 6,
+          "row_count": 5,
           "columns": [
             "episode_range",
             "avg_mal_score",
@@ -953,12 +961,12 @@
           ]
         },
         "match": {
-          "row_match": false,
+          "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -966,79 +974,85 @@
         "question": "Members 상위 1% 작품의 장르 분포 vs 전체 작품의 장르 분포",
         "category": "comparison",
         "difficulty": "hard",
-        "generated_sql": "WITH total_distribution AS (\n    SELECT \n        genre,\n        COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS total_percentage\n    FROM main_marts.mart_content_performance,\n         UNNEST(string_split(genres, ', ')) AS genre\n    GROUP BY genre\n),\ntop_1_percent_threshold AS (\n    SELECT PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY members) as threshold\n    FROM main_marts.mart_content_performance\n),\ntop_1_distribution AS (\n    SELECT \n        genre,\n        COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS top_percentage\n    FROM main_marts.mart_content_performance,\n         UNNEST(string_split(genres, ', ')) AS genre\n    WHERE members >= (SELECT threshold FROM top_1_percent_threshold)\n    GROUP BY genre\n)\nSELECT \n    t.genre,\n    t.total_percentage,\n    COALESCE(top.top_percentage, 0) AS top_1_percentage\nFROM total_distribution t\nLEFT JOIN top_1_distribution top ON t.genre = top.genre\nORDER BY top_1_percentage DESC;",
+        "generated_sql": "WITH top_1_percent AS (\n    SELECT \n        genre, \n        COUNT(*) AS genre_count,\n        SUM(COUNT(*)) OVER() AS total_count_top\n    FROM main_marts.mart_content_performance,\n         UNNEST(string_split(genres, ', ')) AS genre\n    WHERE members >= (SELECT PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY members) FROM main_marts.mart_content_performance)\n    GROUP BY genre\n),\ntotal_distribution AS (\n    SELECT \n        genre, \n        COUNT(*) AS genre_count,\n        SUM(COUNT(*)) OVER() AS total_count_all\n    FROM main_marts.mart_content_performance,\n         UNNEST(string_split(genres, ', ')) AS genre\n    GROUP BY genre\n)\nSELECT \n    t.genre,\n    CAST(top.genre_count AS DOUBLE) / top.total_count_top AS top_1_percent_distribution,\n    CAST(t.genre_count AS DOUBLE) / t.total_count_all AS all_anime_distribution\nFROM total_distribution t\nLEFT JOIN top_1_percent top ON t.genre = top.genre\nORDER BY all_anime_distribution DESC;",
         "execution": {
           "success": true,
           "row_count": 44,
           "columns": [
             "genre",
-            "total_percentage",
-            "top_1_percentage"
+            "top_1_percent_distribution",
+            "all_anime_distribution"
           ]
         },
         "match": {
           "row_match": false,
           "col_match": true,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       }
     ],
     "summary": {
-      "execution_success_rate": 0.975,
-      "result_match_rate": 0.325,
-      "full_match_rate": 0.475,
+      "execution_success_rate": 1.0,
+      "structure_match_rate": 0.075,
+      "result_match_rate": 0.5,
       "total": 40,
-      "exec_success": 39,
-      "result_match": 13,
-      "full_match": 19,
-      "error_types": {
-        "other_error": 1
-      },
+      "exec_success": 40,
+      "structure_match": 3,
+      "result_match": 20,
+      "error_types": {},
       "by_difficulty": {
         "easy": {
           "total": 14,
           "exec_success": 14,
-          "result_match": 8
+          "structure_match": 1,
+          "result_match": 9
         },
         "medium": {
           "total": 19,
           "exec_success": 19,
-          "result_match": 4
+          "structure_match": 2,
+          "result_match": 10
         },
         "hard": {
           "total": 7,
-          "exec_success": 6,
+          "exec_success": 7,
+          "structure_match": 0,
           "result_match": 1
         }
       },
       "by_category": {
+        "comparison": {
+          "total": 7,
+          "exec_success": 7,
+          "structure_match": 0,
+          "result_match": 2
+        },
+        "content_performance": {
+          "total": 10,
+          "exec_success": 10,
+          "structure_match": 0,
+          "result_match": 5
+        },
         "trends": {
           "total": 5,
           "exec_success": 5,
-          "result_match": 1
-        },
-        "user_behavior": {
-          "total": 10,
-          "exec_success": 10,
-          "result_match": 3
+          "structure_match": 2,
+          "result_match": 2
         },
         "genre_analysis": {
           "total": 8,
           "exec_success": 8,
-          "result_match": 4
+          "structure_match": 0,
+          "result_match": 6
         },
-        "content_performance": {
+        "user_behavior": {
           "total": 10,
-          "exec_success": 9,
-          "result_match": 3
-        },
-        "comparison": {
-          "total": 7,
-          "exec_success": 7,
-          "result_match": 2
+          "exec_success": 10,
+          "structure_match": 1,
+          "result_match": 5
         }
       }
     }
@@ -1050,7 +1064,7 @@
         "question": "평균 점수가 가장 높은 애니메이션 상위 10개는?",
         "category": "content_performance",
         "difficulty": "easy",
-        "generated_sql": "SELECT name, mal_score FROM main_marts.mart_content_performance ORDER BY mal_score DESC LIMIT 10;",
+        "generated_sql": "SELECT name, mal_score \nFROM main_marts.mart_content_performance \nORDER BY mal_score DESC \nLIMIT 10;",
         "execution": {
           "success": true,
           "row_count": 10,
@@ -1062,10 +1076,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -1085,10 +1099,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -1108,10 +1122,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -1119,7 +1133,7 @@
         "question": "종합 성과 점수(performance_score) 상위 20개 작품과 그 지표들을 보여줘",
         "category": "content_performance",
         "difficulty": "medium",
-        "generated_sql": "SELECT name, performance_score, mal_score, completion_rate, members, drop_rate\nFROM main_marts.mart_content_performance\nORDER BY performance_score DESC\nLIMIT 20;",
+        "generated_sql": "SELECT name, performance_score, mal_score, completion_rate, drop_rate, members, rating_count \nFROM main_marts.mart_content_performance \nORDER BY performance_score DESC \nLIMIT 20;",
         "execution": {
           "success": true,
           "row_count": 20,
@@ -1128,17 +1142,18 @@
             "performance_score",
             "mal_score",
             "completion_rate",
+            "drop_rate",
             "members",
-            "drop_rate"
+            "rating_count"
           ]
         },
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 6,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 6
         }
       },
       {
@@ -1146,7 +1161,7 @@
         "question": "IP 기반(원작 있는) 작품과 오리지널 작품의 평균 점수, 완주율, 드롭률 비교",
         "category": "content_performance",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    source_category, \n    AVG(mal_score) AS avg_mal_score, \n    AVG(completion_rate) AS avg_completion_rate, \n    AVG(drop_rate) AS avg_drop_rate \nFROM main_marts.mart_content_performance \nWHERE source_category IN ('IP-based', 'Original') \nGROUP BY source_category;",
+        "generated_sql": "SELECT\n    source_category,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate,\n    AVG(drop_rate) AS avg_drop_rate\nFROM main_marts.mart_content_performance\nWHERE source_category IN ('IP-based', 'Original')\nGROUP BY source_category;",
         "execution": {
           "success": true,
           "row_count": 2,
@@ -1160,10 +1175,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
-          "first_row_match": true,
-          "full_match": false,
-          "common_columns": 3,
-          "result_match": false
+          "structure_match": false,
+          "first_row_match": false,
+          "result_match": false,
+          "common_columns": 3
         }
       },
       {
@@ -1171,21 +1186,23 @@
         "question": "Members가 10만 이상인 인기작 중 드롭률이 10% 이상인 작품은?",
         "category": "content_performance",
         "difficulty": "medium",
-        "generated_sql": "SELECT name\nFROM main_marts.mart_content_performance\nWHERE members >= 100000 AND drop_rate >= 0.10;",
+        "generated_sql": "SELECT name, members, drop_rate FROM main_marts.mart_content_performance WHERE members >= 100000 AND drop_rate >= 0.1;",
         "execution": {
           "success": true,
           "row_count": 101,
           "columns": [
-            "name"
+            "name",
+            "members",
+            "drop_rate"
           ]
         },
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 3
         }
       },
       {
@@ -1193,7 +1210,7 @@
         "question": "디지털 네이티브(ONA) 작품 vs TV 작품의 평균 점수와 완주율 비교",
         "category": "content_performance",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    CASE WHEN is_digital_native THEN 'Digital Native (ONA)' ELSE 'TV' END AS anime_type,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nWHERE type IN ('ONA', 'TV')\nGROUP BY is_digital_native;",
+        "generated_sql": "SELECT \n    CASE WHEN is_digital_native THEN 'Digital Native (ONA)' ELSE 'TV' END AS anime_type,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nWHERE type IN ('TV', 'ONA')\nGROUP BY 1;",
         "execution": {
           "success": true,
           "row_count": 2,
@@ -1206,10 +1223,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
-          "first_row_match": false,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": false
+          "structure_match": false,
+          "first_row_match": true,
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1217,7 +1234,7 @@
         "question": "시놉시스가 없는 작품과 있는 작품의 평균 Members 수와 점수 차이는?",
         "category": "content_performance",
         "difficulty": "easy",
-        "generated_sql": "SELECT \n    has_synopsis, \n    AVG(members) AS avg_members, \n    AVG(mal_score) AS avg_mal_score \nFROM main_marts.mart_content_performance \nGROUP BY has_synopsis;",
+        "generated_sql": "SELECT \n    has_synopsis,\n    AVG(members) AS avg_members,\n    AVG(mal_score) AS avg_mal_score\nFROM main_marts.mart_content_performance\nGROUP BY has_synopsis;",
         "execution": {
           "success": true,
           "row_count": 3,
@@ -1230,10 +1247,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
-          "first_row_match": false,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": false
+          "structure_match": false,
+          "first_row_match": true,
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -1241,7 +1258,7 @@
         "question": "인기도 상위 1% 작품의 평균 점수, 완주율, 장르 분포는?",
         "category": "content_performance",
         "difficulty": "hard",
-        "generated_sql": "SELECT AVG(mal_score) AS avg_mal_score, AVG(completion_rate) AS avg_completion_rate, genres FROM main_marts.mart_content_performance WHERE members_tier = 'Top 1%' GROUP BY genres;",
+        "generated_sql": "SELECT \n    AVG(mal_score) AS avg_mal_score, \n    AVG(completion_rate) AS avg_completion_rate, \n    genres \nFROM main_marts.mart_content_performance \nWHERE members_tier = 'Top 1%' \nGROUP BY genres;",
         "execution": {
           "success": true,
           "row_count": 150,
@@ -1254,10 +1271,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -1265,22 +1282,22 @@
         "question": "2010년대(2010-2019) 작품 중 종합 성과 점수 상위 50개의 스튜디오별 분포는?",
         "category": "content_performance",
         "difficulty": "hard",
-        "generated_sql": "SELECT studios, COUNT(*) AS count\nFROM main_marts.mart_content_performance\nWHERE start_year BETWEEN 2010 AND 2019\nAND anime_id IN (\n    SELECT anime_id\n    FROM main_marts.mart_content_performance\n    WHERE start_year BETWEEN 2010 AND 2019\n    ORDER BY performance_score DESC\n    LIMIT 50\n)\nGROUP BY 1\nORDER BY 2 DESC;",
+        "generated_sql": "SELECT studios, COUNT(*) as anime_count\nFROM main_marts.mart_content_performance\nWHERE start_year BETWEEN 2010 AND 2019\nAND anime_id IN (\n    SELECT anime_id\n    FROM main_marts.mart_content_performance\n    WHERE start_year BETWEEN 2010 AND 2019\n    ORDER BY performance_score DESC\n    LIMIT 50\n)\nGROUP BY studios\nORDER BY anime_count DESC;",
         "execution": {
           "success": true,
           "row_count": 19,
           "columns": [
             "studios",
-            "count"
+            "anime_count"
           ]
         },
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -1288,23 +1305,23 @@
         "question": "유저 티어별(Power/Active/Regular/Casual) 평균 평점과 유저 수는?",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT user_tier, AVG(avg_rating) AS avg_user_rating, COUNT(user_id) AS user_count FROM main_marts.mart_user_segments GROUP BY user_tier;",
+        "generated_sql": "SELECT\n  user_tier,\n  AVG(avg_rating) AS average_rating,\n  COUNT(user_id) AS user_count\nFROM main_marts.mart_user_segments\nGROUP BY 1\nORDER BY \n  CASE user_tier \n    WHEN 'Power' THEN 1 \n    WHEN 'Active' THEN 2 \n    WHEN 'Regular' THEN 3 \n    WHEN 'Casual' THEN 4 \n  END;",
         "execution": {
           "success": true,
           "row_count": 4,
           "columns": [
             "user_tier",
-            "avg_user_rating",
+            "average_rating",
             "user_count"
           ]
         },
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -1312,7 +1329,7 @@
         "question": "파워유저(Power tier)의 평균 평점과 일반 유저의 평균 평점 차이는?",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT \n  (SELECT AVG(avg_rating) FROM main_marts.mart_user_segments WHERE user_tier = 'Power') - \n  (SELECT AVG(avg_rating) FROM main_marts.mart_user_segments WHERE user_tier != 'Power') AS avg_rating_difference",
+        "generated_sql": "SELECT \n    AVG(CASE WHEN user_tier = 'Power' THEN avg_rating END) - \n    AVG(CASE WHEN user_tier = 'Regular' THEN avg_rating END) AS avg_rating_difference\nFROM main_marts.mart_user_segments\nWHERE user_tier IN ('Power', 'Regular');",
         "execution": {
           "success": true,
           "row_count": 1,
@@ -1323,10 +1340,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -1334,7 +1351,7 @@
         "question": "평점 성향별(Generous/Moderate/Critical) 유저 수와 비율은?",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT rating_tendency, COUNT(*) AS user_count, COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS user_percentage FROM main_marts.mart_user_segments WHERE rating_tendency IN ('Generous', 'Moderate', 'Critical') GROUP BY rating_tendency;",
+        "generated_sql": "SELECT \n    rating_tendency, \n    COUNT(*) AS user_count, \n    COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS user_percentage\nFROM main_marts.mart_user_segments\nWHERE rating_tendency IN ('Generous', 'Moderate', 'Critical')\nGROUP BY rating_tendency;",
         "execution": {
           "success": true,
           "row_count": 3,
@@ -1347,10 +1364,10 @@
         "match": {
           "row_match": false,
           "col_match": true,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -1358,7 +1375,7 @@
         "question": "가장 많은 작품을 본 유저 상위 10명의 프로필 (총 평점, 평균 평점, 시청 다양성)",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT \n    user_id, \n    total_ratings, \n    avg_rating, \n    viewing_diversity \nFROM main_marts.mart_user_segments \nORDER BY unique_anime_rated DESC \nLIMIT 10;",
+        "generated_sql": "SELECT user_id, total_ratings, avg_rating, viewing_diversity\nFROM main_marts.mart_user_segments\nORDER BY total_ratings DESC\nLIMIT 10;",
         "execution": {
           "success": true,
           "row_count": 10,
@@ -1372,10 +1389,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 4,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 4
         }
       },
       {
@@ -1395,10 +1412,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -1406,22 +1423,21 @@
         "question": "드롭 성향이 'High Dropper'인 유저들이 가장 많이 시청한 장르는?",
         "category": "user_behavior",
         "difficulty": "medium",
-        "generated_sql": "SELECT most_watched_genres, COUNT(*) as user_count\nFROM main_marts.mart_user_segments\nWHERE drop_tendency = 'High Dropper'\nGROUP BY most_watched_genres\nORDER BY user_count DESC\nLIMIT 1;",
+        "generated_sql": "SELECT most_watched_genres\nFROM main_marts.mart_user_segments\nWHERE drop_tendency = 'High Dropper'\nGROUP BY most_watched_genres\nORDER BY COUNT(*) DESC\nLIMIT 1;",
         "execution": {
           "success": true,
           "row_count": 1,
           "columns": [
-            "most_watched_genres",
-            "user_count"
+            "most_watched_genres"
           ]
         },
         "match": {
           "row_match": false,
-          "col_match": true,
+          "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -1429,24 +1445,24 @@
         "question": "유저 티어별 완주율, 드롭률, 평점 참여율을 비교해줘",
         "category": "user_behavior",
         "difficulty": "medium",
-        "generated_sql": "SELECT user_tier, AVG(user_completion_rate) AS avg_completion_rate, AVG(user_drop_rate) AS avg_drop_rate, AVG(rating_engagement_ratio) AS avg_rating_engagement_ratio FROM main_marts.mart_user_segments GROUP BY 1;",
+        "generated_sql": "SELECT \n    user_tier,\n    AVG(user_completion_rate) AS avg_user_completion_rate,\n    AVG(user_drop_rate) AS avg_user_drop_rate,\n    AVG(rating_engagement_ratio) AS avg_rating_engagement_ratio\nFROM main_marts.mart_user_segments\nGROUP BY user_tier;",
         "execution": {
           "success": true,
           "row_count": 4,
           "columns": [
             "user_tier",
-            "avg_completion_rate",
-            "avg_drop_rate",
+            "avg_user_completion_rate",
+            "avg_user_drop_rate",
             "avg_rating_engagement_ratio"
           ]
         },
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1466,10 +1482,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -1477,23 +1493,21 @@
         "question": "Generous 유저(평균 8.5+)와 Critical 유저(5.5~7.0)의 시청 작품 수 차이는?",
         "category": "user_behavior",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    AVG(CASE WHEN rating_tendency = 'Generous' THEN unique_anime_rated END) AS generous_avg_anime_count,\n    AVG(CASE WHEN rating_tendency = 'Critical' THEN unique_anime_rated END) AS critical_avg_anime_count,\n    AVG(CASE WHEN rating_tendency = 'Generous' THEN unique_anime_rated END) - \n    AVG(CASE WHEN rating_tendency = 'Critical' THEN unique_anime_rated END) AS difference\nFROM main_marts.mart_user_segments\nWHERE rating_tendency IN ('Generous', 'Critical');",
+        "generated_sql": "SELECT\n  MAX(CASE WHEN rating_tendency = 'Generous' THEN unique_anime_rated END) -\n  MAX(CASE WHEN rating_tendency = 'Critical' THEN unique_anime_rated END) AS difference\nFROM main_marts.mart_user_segments\nWHERE rating_tendency IN ('Generous', 'Critical');",
         "execution": {
           "success": true,
           "row_count": 1,
           "columns": [
-            "generous_avg_anime_count",
-            "critical_avg_anime_count",
             "difference"
           ]
         },
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -1501,7 +1515,7 @@
         "question": "총 시청 에피소드가 가장 많은 유저 상위 5명의 프로필은?",
         "category": "user_behavior",
         "difficulty": "easy",
-        "generated_sql": "SELECT user_id, user_tier, total_watched_episodes, avg_rating, most_watched_genres \nFROM main_marts.mart_user_segments \nORDER BY total_watched_episodes DESC \nLIMIT 5;",
+        "generated_sql": "SELECT user_id, user_tier, total_watched_episodes, total_ratings, viewing_diversity, rating_tendency\nFROM main_marts.mart_user_segments\nORDER BY total_watched_episodes DESC\nLIMIT 5;",
         "execution": {
           "success": true,
           "row_count": 5,
@@ -1509,17 +1523,18 @@
             "user_id",
             "user_tier",
             "total_watched_episodes",
-            "avg_rating",
-            "most_watched_genres"
+            "total_ratings",
+            "viewing_diversity",
+            "rating_tendency"
           ]
         },
         "match": {
           "row_match": true,
-          "col_match": false,
+          "col_match": true,
+          "structure_match": true,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 4,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 5
         }
       },
       {
@@ -1527,7 +1542,7 @@
         "question": "작품 수가 가장 많은 장르 상위 10개와 각 장르의 평균 점수는?",
         "category": "genre_analysis",
         "difficulty": "easy",
-        "generated_sql": "SELECT genre, anime_count, avg_mal_score FROM main_marts.mart_genre_trends ORDER BY anime_count DESC LIMIT 10;",
+        "generated_sql": "SELECT genre, anime_count, avg_mal_score\nFROM main_marts.mart_genre_trends\nORDER BY anime_count DESC\nLIMIT 10;",
         "execution": {
           "success": true,
           "row_count": 10,
@@ -1540,10 +1555,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -1563,10 +1578,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1574,7 +1589,7 @@
         "question": "장르 건강도 점수(genre_health_score) 상위 10개 장르는?",
         "category": "genre_analysis",
         "difficulty": "easy",
-        "generated_sql": "SELECT genre, genre_health_score FROM main_marts.mart_genre_trends ORDER BY genre_health_score DESC LIMIT 10;",
+        "generated_sql": "SELECT genre, genre_health_score\nFROM main_marts.mart_genre_trends\nORDER BY genre_health_score DESC\nLIMIT 10;",
         "execution": {
           "success": true,
           "row_count": 10,
@@ -1586,10 +1601,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1597,7 +1612,7 @@
         "question": "성장 중(Growing)인 장르는 무엇이고, 각각의 성장률은?",
         "category": "genre_analysis",
         "difficulty": "medium",
-        "generated_sql": "SELECT genre, count_growth_rate FROM main_marts.mart_genre_trends WHERE trend_category = 'Growing'",
+        "generated_sql": "SELECT genre, count_growth_rate FROM main_marts.mart_genre_trends WHERE trend_category = 'Growing';",
         "execution": {
           "success": true,
           "row_count": 22,
@@ -1609,10 +1624,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1620,7 +1635,7 @@
         "question": "감소 중(Declining)인 장르 목록과 그 원인 지표(점수 변화, 성장률)",
         "category": "genre_analysis",
         "difficulty": "medium",
-        "generated_sql": "SELECT genre, score_change, count_growth_rate FROM main_marts.mart_genre_trends WHERE trend_category = 'Declining';",
+        "generated_sql": "SELECT genre, score_change, count_growth_rate\nFROM main_marts.mart_genre_trends\nWHERE trend_category = 'Declining';",
         "execution": {
           "success": true,
           "row_count": 3,
@@ -1633,10 +1648,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -1644,23 +1659,23 @@
         "question": "완주율이 가장 높은 장르 vs 드롭률이 가장 높은 장르 비교",
         "category": "genre_analysis",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    genre,\n    avg_completion_rate AS completion_rate,\n    avg_drop_rate AS drop_rate\nFROM main_marts.mart_genre_trends\nWHERE avg_completion_rate = (SELECT MAX(avg_completion_rate) FROM main_marts.mart_genre_trends)\n   OR avg_drop_rate = (SELECT MAX(avg_drop_rate) FROM main_marts.mart_genre_trends);",
+        "generated_sql": "SELECT\n    genre,\n    avg_completion_rate,\n    avg_drop_rate\nFROM main_marts.mart_genre_trends\nWHERE avg_completion_rate = (SELECT MAX(avg_completion_rate) FROM main_marts.mart_genre_trends)\n   OR avg_drop_rate = (SELECT MAX(avg_drop_rate) FROM main_marts.mart_genre_trends);",
         "execution": {
           "success": true,
           "row_count": 2,
           "columns": [
             "genre",
-            "completion_rate",
-            "drop_rate"
+            "avg_completion_rate",
+            "avg_drop_rate"
           ]
         },
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -1668,7 +1683,7 @@
         "question": "총 Members가 가장 많은 장르 상위 5개의 인기 작품 비율(popular_ratio)은?",
         "category": "genre_analysis",
         "difficulty": "medium",
-        "generated_sql": "SELECT genre, popular_ratio FROM main_marts.mart_genre_trends ORDER BY total_members DESC LIMIT 5;",
+        "generated_sql": "SELECT genre, popular_ratio\nFROM main_marts.mart_genre_trends\nORDER BY total_members DESC\nLIMIT 5;",
         "execution": {
           "success": true,
           "row_count": 5,
@@ -1680,10 +1695,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -1702,10 +1717,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1713,7 +1728,7 @@
         "question": "연도별 애니메이션 작품 수 트렌드 (2000년 이후)",
         "category": "trends",
         "difficulty": "medium",
-        "generated_sql": "SELECT start_year, COUNT(*) AS anime_count FROM main_marts.mart_content_performance WHERE start_year >= 2000 GROUP BY start_year ORDER BY start_year ASC;",
+        "generated_sql": "SELECT start_year, COUNT(*) AS anime_count\nFROM main_marts.mart_content_performance\nWHERE start_year >= 2000\nGROUP BY start_year\nORDER BY start_year ASC;",
         "execution": {
           "success": true,
           "row_count": 23,
@@ -1725,10 +1740,10 @@
         "match": {
           "row_match": true,
           "col_match": true,
+          "structure_match": true,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 2
         }
       },
       {
@@ -1748,10 +1763,10 @@
         "match": {
           "row_match": false,
           "col_match": true,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       },
       {
@@ -1759,7 +1774,7 @@
         "question": "2015년 이후 작품의 평균 점수와 2015년 이전 작품의 평균 점수 차이는?",
         "category": "trends",
         "difficulty": "easy",
-        "generated_sql": "SELECT AVG(CASE WHEN start_year >= 2015 THEN mal_score END) - AVG(CASE WHEN start_year < 2015 THEN mal_score END) AS score_difference FROM main_marts.mart_content_performance WHERE start_year IS NOT NULL;",
+        "generated_sql": "SELECT \n    AVG(CASE WHEN start_year >= 2015 THEN mal_score END) - AVG(CASE WHEN start_year < 2015 THEN mal_score END) AS score_difference\nFROM main_marts.mart_content_performance\nWHERE start_year IS NOT NULL;",
         "execution": {
           "success": true,
           "row_count": 1,
@@ -1770,10 +1785,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 0,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -1781,7 +1796,7 @@
         "question": "시즌별(Winter/Spring/Summer/Fall) 평균 점수와 작품 수 비교",
         "category": "trends",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    season, \n    AVG(mal_score) AS avg_mal_score, \n    COUNT(*) AS anime_count \nFROM main_marts.mart_content_performance \nGROUP BY season;",
+        "generated_sql": "SELECT season, AVG(mal_score) AS avg_mal_score, COUNT(anime_id) AS anime_count FROM main_marts.mart_content_performance GROUP BY season;",
         "execution": {
           "success": true,
           "row_count": 5,
@@ -1794,10 +1809,10 @@
         "match": {
           "row_match": false,
           "col_match": true,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -1805,10 +1820,10 @@
         "question": "연도별 평균 드롭률의 변화 추이",
         "category": "trends",
         "difficulty": "hard",
-        "generated_sql": "SELECT\n    start_year,\n    AVG(drop_rate) AS avg_drop_rate\nFROM main_marts.mart_content_performance\nWHERE start_year IS NOT NULL\nGROUP BY start_year\nORDER BY start_year;",
+        "generated_sql": "SELECT start_year, AVG(drop_rate) AS avg_drop_rate FROM main_marts.mart_content_performance GROUP BY start_year ORDER BY start_year;",
         "execution": {
           "success": true,
-          "row_count": 101,
+          "row_count": 102,
           "columns": [
             "start_year",
             "avg_drop_rate"
@@ -1817,10 +1832,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 2,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -1840,10 +1855,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1865,10 +1880,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": true,
-          "common_columns": 1,
-          "result_match": true
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1876,16 +1891,24 @@
         "question": "인기도 상위 10% 작품을 주로 보는 유저 vs 나머지 작품을 보는 유저의 평점 성향 차이",
         "category": "comparison",
         "difficulty": "hard",
-        "generated_sql": "SELECT \n    CASE \n        WHEN members_tier = 'Top 10%' THEN 'Top 10% Audience' \n        ELSE 'Others' \n    END AS user_preference_segment, \n    AVG(avg_rating) AS avg_user_score, \n    mode(rating_tendency) AS dominant_rating_tendency\nFROM main_marts.mart_user_segments\nGROUP BY 1;",
+        "generated_sql": "WITH user_anime_prefs AS (\n    SELECT \n        u.user_id,\n        u.avg_rating,\n        u.rating_tendency,\n        AVG(CASE WHEN c.members_tier = 'Top 10%' THEN 1.0 ELSE 0.0 END) as preference_for_top_tier\n    FROM main_marts.mart_user_segments u\n    JOIN main_marts.mart_content_performance c ON TRUE -- This requires a join mapping users to anime, but given the schema, we analyze based on user aggregate preferences\n    -- Assuming we segment users by whether their average list preference leans toward Top 10% popularity\n    GROUP BY 1, 2, 3\n)\nSELECT \n    CASE WHEN preference_for_top_tier >= 0.5 THEN 'Top 10% Focused' ELSE 'Others Focused' END as user_segment,\n    rating_tendency,\n    COUNT(*) as user_count,\n    AVG(avg_rating) as avg_user_rating\nFROM user_anime_prefs\nGROUP BY 1, 2\nORDER BY 1, 2;",
         "execution": {
-          "success": false,
-          "error": "Binder Error: Referenced column \"members_tier\" not found in FROM clause!\nCandidate bindings: \"user_tier\", \"user_completion_rate\", \"user_id\", \"most_watched_genres\", \"median_rating\"\n\nLINE 3:         WHEN members_tier = 'Top 10%' THEN 'Top 10% Audience' \n                     ^",
-          "error_type": "wrong_column"
+          "success": true,
+          "row_count": 4,
+          "columns": [
+            "user_segment",
+            "rating_tendency",
+            "user_count",
+            "avg_user_rating"
+          ]
         },
         "match": {
           "row_match": false,
           "col_match": false,
-          "result_match": false
+          "structure_match": false,
+          "first_row_match": true,
+          "result_match": false,
+          "common_columns": 2
         }
       },
       {
@@ -1893,7 +1916,7 @@
         "question": "2000년대(2000-2009) vs 2010년대(2010-2019) 작품의 평균 드롭률과 완주율 변화",
         "category": "comparison",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    CASE \n        WHEN start_year BETWEEN 2000 AND 2009 THEN '2000s'\n        WHEN start_year BETWEEN 2010 AND 2019 THEN '2010s'\n    END AS decade,\n    AVG(drop_rate) AS avg_drop_rate,\n    AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nWHERE start_year BETWEEN 2000 AND 2019\nGROUP BY 1\nORDER BY 1;",
+        "generated_sql": "SELECT\n  CASE\n    WHEN start_year BETWEEN 2000 AND 2009 THEN '2000s'\n    WHEN start_year BETWEEN 2010 AND 2019 THEN '2010s'\n  END AS decade,\n  AVG(drop_rate) AS avg_drop_rate,\n  AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nWHERE start_year BETWEEN 2000 AND 2019\nGROUP BY 1;",
         "execution": {
           "success": true,
           "row_count": 2,
@@ -1906,10 +1929,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
-          "first_row_match": true,
-          "full_match": true,
-          "common_columns": 3,
-          "result_match": true
+          "structure_match": false,
+          "first_row_match": false,
+          "result_match": false,
+          "common_columns": 3
         }
       },
       {
@@ -1917,12 +1940,12 @@
         "question": "Manga 원작 애니메이션 vs Light Novel 원작 vs Original의 성과 비교 (점수, 완주율, Members)",
         "category": "comparison",
         "difficulty": "medium",
-        "generated_sql": "SELECT \n    source_material, \n    AVG(mal_score) AS avg_mal_score, \n    AVG(completion_rate) AS avg_completion_rate, \n    AVG(members) AS avg_members \nFROM main_marts.mart_content_performance \nWHERE source_material IN ('Manga', 'Light novel', 'Original') \nGROUP BY source_material;",
+        "generated_sql": "SELECT \n    CASE \n        WHEN source_material IN ('Manga', 'Web manga') THEN 'Manga'\n        WHEN source_material = 'Light novel' THEN 'Light novel'\n        WHEN source_material = 'Original' THEN 'Original'\n        ELSE 'Other'\n    END AS source_type,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate,\n    AVG(members) AS avg_members\nFROM main_marts.mart_content_performance\nWHERE source_material IN ('Manga', 'Web manga', 'Light novel', 'Original')\nGROUP BY 1;",
         "execution": {
           "success": true,
           "row_count": 3,
           "columns": [
-            "source_material",
+            "source_type",
             "avg_mal_score",
             "avg_completion_rate",
             "avg_members"
@@ -1931,10 +1954,10 @@
         "match": {
           "row_match": true,
           "col_match": false,
-          "first_row_match": false,
-          "full_match": true,
-          "common_columns": 2,
-          "result_match": false
+          "structure_match": false,
+          "first_row_match": true,
+          "result_match": true,
+          "common_columns": 1
         }
       },
       {
@@ -1942,12 +1965,12 @@
         "question": "에피소드 수 구간별(1화, 2-12화, 13-26화, 27-52화, 52화+) 평균 점수와 완주율",
         "category": "comparison",
         "difficulty": "hard",
-        "generated_sql": "SELECT \n    CASE \n        WHEN episodes = 1 THEN '1화'\n        WHEN episodes BETWEEN 2 AND 12 THEN '2-12화'\n        WHEN episodes BETWEEN 13 AND 26 THEN '13-26화'\n        WHEN episodes BETWEEN 27 AND 52 THEN '27-52화'\n        WHEN episodes > 52 THEN '52화+'\n        ELSE '정보 없음'\n    END AS episode_range,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nGROUP BY 1\nORDER BY \n    CASE \n        WHEN episode_range = '1화' THEN 1\n        WHEN episode_range = '2-12화' THEN 2\n        WHEN episode_range = '13-26화' THEN 3\n        WHEN episode_range = '27-52화' THEN 4\n        WHEN episode_range = '52화+' THEN 5\n        ELSE 6\n    END;",
+        "generated_sql": "SELECT \n    CASE \n        WHEN episodes = 1 THEN '1화'\n        WHEN episodes BETWEEN 2 AND 12 THEN '2-12화'\n        WHEN episodes BETWEEN 13 AND 26 THEN '13-26화'\n        WHEN episodes BETWEEN 27 AND 52 THEN '27-52화'\n        WHEN episodes > 52 THEN '52화+'\n        ELSE '정보 없음'\n    END AS episode_group,\n    AVG(mal_score) AS avg_mal_score,\n    AVG(completion_rate) AS avg_completion_rate\nFROM main_marts.mart_content_performance\nGROUP BY 1\nORDER BY \n    CASE episode_group\n        WHEN '1화' THEN 1\n        WHEN '2-12화' THEN 2\n        WHEN '13-26화' THEN 3\n        WHEN '27-52화' THEN 4\n        WHEN '52화+' THEN 5\n        ELSE 6\n    END;",
         "execution": {
           "success": true,
           "row_count": 6,
           "columns": [
-            "episode_range",
+            "episode_group",
             "avg_mal_score",
             "avg_completion_rate"
           ]
@@ -1955,10 +1978,10 @@
         "match": {
           "row_match": false,
           "col_match": false,
+          "structure_match": false,
           "first_row_match": false,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 0
         }
       },
       {
@@ -1966,79 +1989,87 @@
         "question": "Members 상위 1% 작품의 장르 분포 vs 전체 작품의 장르 분포",
         "category": "comparison",
         "difficulty": "hard",
-        "generated_sql": "WITH total_counts AS (\n    SELECT \n        COUNT(*) AS total_all\n    FROM main_marts.mart_content_performance\n),\ntop_counts AS (\n    SELECT \n        COUNT(*) AS total_top\n    FROM main_marts.mart_content_performance\n    WHERE members_tier = 'Top 1%'\n),\ngenre_split AS (\n    SELECT\n        g.genre,\n        COUNT(*) AS count_all,\n        SUM(CASE WHEN m.members_tier = 'Top 1%' THEN 1 ELSE 0 END) AS count_top\n    FROM main_marts.mart_content_performance m,\n    UNNEST(string_split(m.genres, ', ')) AS g(genre)\n    GROUP BY 1\n)\nSELECT\n    s.genre,\n    s.count_top::DOUBLE / t.total_top AS top_1_percent_distribution,\n    s.count_all::DOUBLE / a.total_all AS all_anime_distribution\nFROM genre_split s, total_counts a, top_counts t\nORDER BY top_1_percent_distribution DESC;",
+        "generated_sql": "WITH genre_split AS (\n    SELECT \n        genre,\n        count(*) as total_count,\n        sum(case when members_tier = 'Top 1%' then 1 else 0 end) as top_1_count\n    FROM (\n        SELECT \n            unnest(string_split(genres, ', ')) as genre,\n            members_tier\n        FROM main_marts.mart_content_performance\n        WHERE genres IS NOT NULL\n    )\n    GROUP BY 1\n)\nSELECT \n    genre,\n    total_count,\n    total_count * 1.0 / (SELECT count(*) FROM main_marts.mart_content_performance) as total_distribution,\n    top_1_count,\n    top_1_count * 1.0 / (SELECT count(*) FROM main_marts.mart_content_performance WHERE members_tier = 'Top 1%') as top_1_distribution\nFROM genre_split\nORDER BY top_1_distribution DESC;",
         "execution": {
           "success": true,
           "row_count": 44,
           "columns": [
             "genre",
-            "top_1_percent_distribution",
-            "all_anime_distribution"
+            "total_count",
+            "total_distribution",
+            "top_1_count",
+            "top_1_distribution"
           ]
         },
         "match": {
           "row_match": false,
-          "col_match": true,
+          "col_match": false,
+          "structure_match": false,
           "first_row_match": true,
-          "full_match": false,
-          "common_columns": 1,
-          "result_match": false
+          "result_match": false,
+          "common_columns": 1
         }
       }
     ],
     "summary": {
-      "execution_success_rate": 0.975,
-      "result_match_rate": 0.375,
-      "full_match_rate": 0.55,
+      "execution_success_rate": 1.0,
+      "structure_match_rate": 0.05,
+      "result_match_rate": 0.5,
       "total": 40,
-      "exec_success": 39,
-      "result_match": 15,
-      "full_match": 22,
-      "error_types": {
-        "wrong_column": 1
-      },
+      "exec_success": 40,
+      "structure_match": 2,
+      "result_match": 20,
+      "error_types": {},
       "by_difficulty": {
         "easy": {
           "total": 14,
           "exec_success": 14,
-          "result_match": 8
+          "structure_match": 1,
+          "result_match": 9
         },
         "medium": {
           "total": 19,
           "exec_success": 19,
-          "result_match": 6
+          "structure_match": 1,
+          "result_match": 10
         },
         "hard": {
           "total": 7,
-          "exec_success": 6,
+          "exec_success": 7,
+          "structure_match": 0,
           "result_match": 1
         }
       },
       "by_category": {
-        "trends": {
-          "total": 5,
-          "exec_success": 5,
-          "result_match": 1
-        },
-        "user_behavior": {
-          "total": 10,
-          "exec_success": 10,
+        "comparison": {
+          "total": 7,
+          "exec_success": 7,
+          "structure_match": 0,
           "result_match": 3
-        },
-        "genre_analysis": {
-          "total": 8,
-          "exec_success": 8,
-          "result_match": 5
         },
         "content_performance": {
           "total": 10,
           "exec_success": 10,
-          "result_match": 3
+          "structure_match": 0,
+          "result_match": 5
         },
-        "comparison": {
-          "total": 7,
-          "exec_success": 6,
-          "result_match": 3
+        "trends": {
+          "total": 5,
+          "exec_success": 5,
+          "structure_match": 1,
+          "result_match": 1
+        },
+        "genre_analysis": {
+          "total": 8,
+          "exec_success": 8,
+          "structure_match": 0,
+          "result_match": 7
+        },
+        "user_behavior": {
+          "total": 10,
+          "exec_success": 10,
+          "structure_match": 1,
+          "result_match": 4
         }
       }
     }

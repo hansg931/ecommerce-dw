@@ -185,18 +185,18 @@ def _compare_values(g_val, e_val) -> bool:
 def compare_results(con, golden_sql: str, generated_sql: str) -> dict:
     """Golden Query와 생성된 SQL의 결과 비교 (3단계 평가)
 
-    Level 1 (row_match): 행 수 일치
+    Level 1 (structure_match): 행 수 + 컬럼 수 일치
     Level 2 (first_row_match): 공통 컬럼 첫 행 값 비교 (50%+ 일치)
-    Level 3 (full_match): 전체 결과셋 비교 — 공통 컬럼 기준 정렬 후 50%+ 행 일치
+    Level 3 (result_match): 전체 결과셋 비교 — 공통 컬럼 기준 정렬 후 50%+ 행 일치 [핵심 지표]
     """
     try:
         golden_result = con.execute(golden_sql).df()
         gen_result = con.execute(generated_sql).df()
 
-        # Level 1: 행 수 일치
+        # Level 1: 구조 일치 (행 수 + 컬럼 수)
         row_match = len(golden_result) == len(gen_result)
-        # 컬럼 수 일치
         col_match = len(golden_result.columns) == len(gen_result.columns)
+        structure_match = row_match and col_match
 
         common_cols = sorted(set(golden_result.columns) & set(gen_result.columns))
 
@@ -209,11 +209,11 @@ def compare_results(con, golden_sql: str, generated_sql: str) -> dict:
             )
             first_row_match = matches / len(common_cols) >= 0.5
 
-        # Level 3: 전체 결과셋 비교
-        full_match = False
+        # Level 3: 전체 결과셋 값 비교 [핵심 지표]
+        # 공통 컬럼 기준 정렬 후 50%+ 행의 50%+ 컬럼 값 일치
+        result_match = False
         if common_cols and row_match and len(golden_result) > 0:
             try:
-                # 공통 컬럼으로 양쪽 정렬
                 g_sorted = golden_result[common_cols].copy()
                 e_sorted = gen_result[common_cols].copy()
 
@@ -238,29 +238,26 @@ def compare_results(con, golden_sql: str, generated_sql: str) -> dict:
                     )
                     if col_matches / len(common_cols) >= 0.5:
                         row_matches += 1
-                full_match = row_matches / len(g_sorted) >= 0.5
+                result_match = row_matches / len(g_sorted) >= 0.5
             except Exception:
-                full_match = False
-
-        # 최종 result_match: row + (col 또는 first_row 일치) — 하위 호환
-        result_match = row_match and (col_match or first_row_match)
+                result_match = False
 
         return {
             "row_match": row_match,
             "col_match": col_match,
+            "structure_match": structure_match,
             "first_row_match": first_row_match,
-            "full_match": full_match,
-            "common_columns": len(common_cols),
             "result_match": result_match,
+            "common_columns": len(common_cols),
         }
     except Exception as e:
         return {
             "row_match": False,
             "col_match": False,
+            "structure_match": False,
             "first_row_match": False,
-            "full_match": False,
-            "common_columns": 0,
             "result_match": False,
+            "common_columns": 0,
             "compare_error": str(e)[:200],
         }
 
@@ -310,7 +307,8 @@ def run_evaluation():
                 match_result = (
                     compare_results(con, golden_sql, generated_sql)
                     if exec_result["success"]
-                    else {"row_match": False, "col_match": False, "result_match": False}
+                    else {"row_match": False, "col_match": False, "structure_match": False,
+                          "first_row_match": False, "result_match": False}
                 )
 
                 result = {
@@ -344,8 +342,8 @@ def run_evaluation():
         mode_results = results[mode]["results"]
         total = len(mode_results)
         exec_success = sum(1 for r in mode_results if r["execution"]["success"])
-        result_match = sum(1 for r in mode_results if r["match"]["result_match"])
-        full_match = sum(1 for r in mode_results if r["match"].get("full_match", False))
+        structure_match = sum(1 for r in mode_results if r["match"].get("structure_match", False))
+        result_match = sum(1 for r in mode_results if r["match"].get("result_match", False))
 
         # 에러 유형 분류
         error_types = {}
@@ -362,7 +360,8 @@ def run_evaluation():
                 difficulty_stats[diff] = {
                     "total": len(diff_results),
                     "exec_success": sum(1 for r in diff_results if r["execution"]["success"]),
-                    "result_match": sum(1 for r in diff_results if r["match"]["result_match"]),
+                    "structure_match": sum(1 for r in diff_results if r["match"].get("structure_match", False)),
+                    "result_match": sum(1 for r in diff_results if r["match"].get("result_match", False)),
                 }
 
         # 카테고리별 성공률
@@ -372,30 +371,31 @@ def run_evaluation():
             category_stats[cat] = {
                 "total": len(cat_results),
                 "exec_success": sum(1 for r in cat_results if r["execution"]["success"]),
-                "result_match": sum(1 for r in cat_results if r["match"]["result_match"]),
+                "structure_match": sum(1 for r in cat_results if r["match"].get("structure_match", False)),
+                "result_match": sum(1 for r in cat_results if r["match"].get("result_match", False)),
             }
 
         results[mode]["summary"] = {
             "execution_success_rate": round(exec_success / total, 4) if total > 0 else 0,
+            "structure_match_rate": round(structure_match / total, 4) if total > 0 else 0,
             "result_match_rate": round(result_match / total, 4) if total > 0 else 0,
-            "full_match_rate": round(full_match / total, 4) if total > 0 else 0,
             "total": total,
             "exec_success": exec_success,
+            "structure_match": structure_match,
             "result_match": result_match,
-            "full_match": full_match,
             "error_types": error_types,
             "by_difficulty": difficulty_stats,
             "by_category": category_stats,
         }
 
         print(f"\n  Summary: exec_success={exec_success}/{total} ({exec_success/total*100:.1f}%), "
-              f"result_match={result_match}/{total} ({result_match/total*100:.1f}%)")
+              f"structure_match={structure_match}/{total}, result_match={result_match}/{total} ({result_match/total*100:.1f}%)")
 
     # 최종 비교
     print(f"\n{'='*60}")
     print("FINAL COMPARISON: Baseline vs Full (Semantic Layer)")
     print(f"{'='*60}")
-    for metric in ["execution_success_rate", "result_match_rate", "full_match_rate"]:
+    for metric in ["execution_success_rate", "structure_match_rate", "result_match_rate"]:
         b = results["baseline"]["summary"][metric]
         f = results["full"]["summary"][metric]
         diff = f - b
