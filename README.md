@@ -2,6 +2,8 @@
 
 MyAnimeList 57M+ ratings 데이터 기반 **3-Layer Data Warehouse 설계** + **Semantic Layer 구축** + **LLM Text-to-SQL Golden Dataset 검증** 프로젝트
 
+[노션 링크](https://cut-bookcase-f3b.notion.site/327d9632993e8038a564e380ac954fee?pvs=73)
+
 <br>
 
 ## 핵심 수치
@@ -145,7 +147,7 @@ flowchart TB
 | 구조 일치율 | 5.0% (2/40) | 12.5% (5/40) | +7.5%p |
 | **결과 일치율** | **47.5%** (19/40) | **65.0%** (26/40) | **+17.5%p** |
 
-† API 503 에러 3건 (모델 일시적 과부하) — 실제 SQL 생성 품질과 무관
+† API 503 에러 3건 (모델 일시적 과부하)
 
 > **평가 지표 설명**
 > - `구조 일치율(structure_match)`: 행 수 + 컬럼 수가 정확히 일치
