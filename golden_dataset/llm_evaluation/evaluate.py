@@ -166,50 +166,90 @@ def classify_error(error_msg: str) -> str:
     return "other_error"
 
 
+def _compare_values(g_val, e_val) -> bool:
+    """두 값이 동등한지 비교 (수치형 5% 오차 허용)"""
+    import math
+    if g_val is None and e_val is None:
+        return True
+    if g_val is None or e_val is None:
+        return False
+    if isinstance(g_val, float) and math.isnan(g_val) and isinstance(e_val, float) and math.isnan(e_val):
+        return True
+    if isinstance(g_val, (int, float)) and isinstance(e_val, (int, float)):
+        if g_val == 0:
+            return e_val == 0
+        return abs(g_val - e_val) / abs(g_val) < 0.05
+    return str(g_val) == str(e_val)
+
+
 def compare_results(con, golden_sql: str, generated_sql: str) -> dict:
-    """Golden Query와 생성된 SQL의 결과 비교 (다층 평가)"""
+    """Golden Query와 생성된 SQL의 결과 비교 (3단계 평가)
+
+    Level 1 (row_match): 행 수 일치
+    Level 2 (first_row_match): 공통 컬럼 첫 행 값 비교 (50%+ 일치)
+    Level 3 (full_match): 전체 결과셋 비교 — 공통 컬럼 기준 정렬 후 50%+ 행 일치
+    """
     try:
         golden_result = con.execute(golden_sql).df()
         gen_result = con.execute(generated_sql).df()
 
-        # 1) 행 수 일치
+        # Level 1: 행 수 일치
         row_match = len(golden_result) == len(gen_result)
-        # 2) 컬럼 수 일치
+        # 컬럼 수 일치
         col_match = len(golden_result.columns) == len(gen_result.columns)
 
-        # 3) 공통 컬럼의 값 비교 (핵심 지표)
-        common_cols = set(golden_result.columns) & set(gen_result.columns)
-        value_match = False
-        if common_cols and len(golden_result) > 0 and len(gen_result) > 0:
-            # 공통 컬럼 중 수치형 컬럼의 첫 행 값 비교
-            matches = 0
-            compared = 0
-            for col in common_cols:
-                try:
-                    g_val = golden_result[col].iloc[0]
-                    e_val = gen_result[col].iloc[0]
-                    if g_val is None and e_val is None:
-                        matches += 1
-                    elif isinstance(g_val, (int, float)) and isinstance(e_val, (int, float)):
-                        # 수치형: 5% 오차 허용
-                        if g_val == 0:
-                            matches += 1 if e_val == 0 else 0
-                        elif abs(g_val - e_val) / abs(g_val) < 0.05:
-                            matches += 1
-                    elif str(g_val) == str(e_val):
-                        matches += 1
-                    compared += 1
-                except Exception:
-                    pass
-            value_match = compared > 0 and matches / compared >= 0.5
+        common_cols = sorted(set(golden_result.columns) & set(gen_result.columns))
 
-        # 4) 최종 result_match: row + (col 또는 공통값 일치)
-        result_match = row_match and (col_match or value_match)
+        # Level 2: 첫 행 값 비교
+        first_row_match = False
+        if common_cols and len(golden_result) > 0 and len(gen_result) > 0:
+            matches = sum(
+                1 for col in common_cols
+                if _compare_values(golden_result[col].iloc[0], gen_result[col].iloc[0])
+            )
+            first_row_match = matches / len(common_cols) >= 0.5
+
+        # Level 3: 전체 결과셋 비교
+        full_match = False
+        if common_cols and row_match and len(golden_result) > 0:
+            try:
+                # 공통 컬럼으로 양쪽 정렬
+                g_sorted = golden_result[common_cols].copy()
+                e_sorted = gen_result[common_cols].copy()
+
+                # 수치형 컬럼 round(2)
+                for col in common_cols:
+                    if g_sorted[col].dtype.kind in ("f", "i"):
+                        g_sorted[col] = g_sorted[col].round(2)
+                    if e_sorted[col].dtype.kind in ("f", "i"):
+                        e_sorted[col] = e_sorted[col].round(2)
+
+                # 첫 번째 컬럼 기준 정렬
+                sort_col = common_cols[0]
+                g_sorted = g_sorted.sort_values(sort_col).reset_index(drop=True)
+                e_sorted = e_sorted.sort_values(sort_col).reset_index(drop=True)
+
+                # 행별 비교
+                row_matches = 0
+                for i in range(len(g_sorted)):
+                    col_matches = sum(
+                        1 for col in common_cols
+                        if _compare_values(g_sorted[col].iloc[i], e_sorted[col].iloc[i])
+                    )
+                    if col_matches / len(common_cols) >= 0.5:
+                        row_matches += 1
+                full_match = row_matches / len(g_sorted) >= 0.5
+            except Exception:
+                full_match = False
+
+        # 최종 result_match: row + (col 또는 first_row 일치) — 하위 호환
+        result_match = row_match and (col_match or first_row_match)
 
         return {
             "row_match": row_match,
             "col_match": col_match,
-            "value_match": value_match,
+            "first_row_match": first_row_match,
+            "full_match": full_match,
             "common_columns": len(common_cols),
             "result_match": result_match,
         }
@@ -217,7 +257,8 @@ def compare_results(con, golden_sql: str, generated_sql: str) -> dict:
         return {
             "row_match": False,
             "col_match": False,
-            "value_match": False,
+            "first_row_match": False,
+            "full_match": False,
             "common_columns": 0,
             "result_match": False,
             "compare_error": str(e)[:200],
@@ -304,6 +345,7 @@ def run_evaluation():
         total = len(mode_results)
         exec_success = sum(1 for r in mode_results if r["execution"]["success"])
         result_match = sum(1 for r in mode_results if r["match"]["result_match"])
+        full_match = sum(1 for r in mode_results if r["match"].get("full_match", False))
 
         # 에러 유형 분류
         error_types = {}
@@ -336,9 +378,11 @@ def run_evaluation():
         results[mode]["summary"] = {
             "execution_success_rate": round(exec_success / total, 4) if total > 0 else 0,
             "result_match_rate": round(result_match / total, 4) if total > 0 else 0,
+            "full_match_rate": round(full_match / total, 4) if total > 0 else 0,
             "total": total,
             "exec_success": exec_success,
             "result_match": result_match,
+            "full_match": full_match,
             "error_types": error_types,
             "by_difficulty": difficulty_stats,
             "by_category": category_stats,
@@ -351,7 +395,7 @@ def run_evaluation():
     print(f"\n{'='*60}")
     print("FINAL COMPARISON: Baseline vs Full (Semantic Layer)")
     print(f"{'='*60}")
-    for metric in ["execution_success_rate", "result_match_rate"]:
+    for metric in ["execution_success_rate", "result_match_rate", "full_match_rate"]:
         b = results["baseline"]["summary"][metric]
         f = results["full"]["summary"][metric]
         diff = f - b

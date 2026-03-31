@@ -357,6 +357,21 @@ SELECT
 FROM main_marts.mart_genre_trends
 WHERE genre IN ('Action', 'Romance');
 
+-- ─── CM03: 활동 수준별 평점 성향 비교 (인기 작품 소비 프록시) ───
+-- CM03
+-- 유저 활동 수준(user_tier)을 인기 작품 소비의 프록시로 활용
+-- Power/Active 유저는 더 많은 작품을 시청하므로 인기 작품 노출 비율이 높음
+SELECT
+    user_tier,
+    rating_tendency,
+    COUNT(*) AS user_count,
+    ROUND(AVG(avg_rating), 3) AS avg_avg_rating,
+    ROUND(AVG(unique_anime_rated), 1) AS avg_anime_count,
+    ROUND(AVG(user_completion_rate), 4) AS avg_completion_rate
+FROM main_marts.mart_user_segments
+GROUP BY user_tier, rating_tendency
+ORDER BY user_tier, rating_tendency;
+
 -- ─── CM04: 2000년대 vs 2010년대 비교 ───
 -- CM04
 SELECT
