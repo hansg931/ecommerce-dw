@@ -55,4 +55,5 @@ select
 from anime_genres
 where genre != ''
 group by genre
+-- 소규모 장르 노이즈 제거: 작품 수 10개 미만 장르 제외 (통계적 안정성 확보)
 having count(distinct anime_id) >= 10

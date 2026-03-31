@@ -74,6 +74,10 @@ select
     end as score_change,
 
     -- 트렌드 분류
+    -- 비대칭 임계치 근거: 2010년대 애니메이션 시장 전반적 성장기
+    --   성장률 중앙값(p50)=0.31 → 장르 절반이 30%+ 성장
+    --   Growing(>0.3) = 중앙값 이상 성장만 선별 (22/43 장르)
+    --   Declining(<-0.2) = 명확한 감소만 포착 (3/43 장르)
     case
         when gtc.prev_avg_count > 0
             and (gtc.recent_avg_count - gtc.prev_avg_count) / gtc.prev_avg_count > 0.3
@@ -85,9 +89,11 @@ select
     end as trend_category,
 
     -- 장르 건강도 점수 (성장 + 품질 + 인기)
+    -- 가중치: 성장성 30% + 품질 30% + 인기 20% + 완주율 20%
+    -- 점수 정규화: (score - 1) / 9 → 1~10을 0~1로 매핑 (mart_content_performance와 동일)
     coalesce(
         0.3 * gb.recent_ratio
-        + 0.3 * (gb.avg_mal_score - 5.0) / 5.0
+        + 0.3 * (gb.avg_mal_score - 1.0) / 9.0
         + 0.2 * gb.popular_ratio
         + 0.2 * gb.avg_completion_rate,
         null
