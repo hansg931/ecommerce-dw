@@ -60,7 +60,7 @@ flowchart LR
     end
 
     subgraph Phase3["Phase 3: Semantic Layer"]
-        MART --> SEM["컬럼 정의 69개\n용어 사전 16개\n지표 정의 16개"]
+        MART --> SEM["컬럼 정의 74개\n용어 사전 16개\n지표 정의 13개"]
     end
 
     subgraph Phase4["Phase 4: 검증"]
