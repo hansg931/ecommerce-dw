@@ -9,11 +9,11 @@ MyAnimeList 57M+ ratings 데이터 기반 **3-Layer Data Warehouse 설계** + **
 | 항목 | 수치 |
 |:-----|:-----|
 | 데이터 규모 | 17.5K anime · 310K users · **57M ratings** · 109M list entries |
-| dbt 모델 | **10개** (Staging 4 + Intermediate 3 + Mart 3), 24개 테스트 전체 통과 |
-| Semantic Layer | 69개 컬럼 정의 · 16개 용어 사전 · 16개 지표 정의 (한/영 병기) |
-| Golden Dataset | **40개** 자연어 질문 + 39개 검증된 SQL (5 카테고리 × 3 난이도) |
-| LLM 실행 성공률 | 94.9% → **100%** (+5.1%p) |
-| LLM 결과 일치율 | 33.3% → **41.0%** (+7.7%p) |
+| dbt 모델 | **10개** (Staging 4 + Intermediate 3 + Mart 3), 30개 테스트 전체 통과 |
+| Semantic Layer | 74개 컬럼 정의 · 16개 용어 사전 · 13개 지표 정의 (한/영 병기) |
+| Golden Dataset | **40개** 자연어 질문 + **40개** 검증된 SQL (5 카테고리 × 3 난이도) |
+| LLM 실행 성공률 | Baseline 97.5% / Full 97.5% |
+| LLM 결과 일치율 | Baseline 32.5% → Full **37.5%** (+5.0%p) |
 
 <br>
 
@@ -28,7 +28,7 @@ poetry install
 # dbt 모델 실행
 cd dbt_project
 poetry run dbt run --profiles-dir .
-poetry run dbt test --profiles-dir .    # 24개 테스트 전체 통과
+poetry run dbt test --profiles-dir .    # 30개 테스트 전체 통과
 
 # LLM 평가 (선택 — Gemini API 키 필요)
 cd ..
@@ -141,8 +141,9 @@ flowchart TB
 
 | 지표 | Baseline (스키마만) | Full (+ Semantic Layer) | 개선 |
 |:-----|:---------|:-----------------------|:-----|
-| 실행 성공률 | 94.9% (37/39) | **100.0%** (39/39) | +5.1%p |
-| 결과 일치율 | 33.3% (13/39) | **41.0%** (16/39) | +7.7%p |
+| 실행 성공률 | 97.5% (39/40) | 97.5% (39/40) | 0%p |
+| 결과 일치율 | 32.5% (13/40) | **37.5%** (15/40) | +5.0%p |
+| 전체 결과 일치율 | 47.5% (19/40) | **55.0%** (22/40) | +7.5%p |
 
 **한계:** Semantic Layer는 컬럼의 의미(WHAT)를 전달하는 데 효과적이었지만, 쿼리 패턴(HOW) — UNNEST, 시계열 GROUP BY, 다중 테이블 조인 등 — 은 안내하지 못했습니다. Medium/Hard 난이도와 비교/복합 카테고리에서 개선이 없었으며, 쿼리 패턴 예시나 Few-shot 프롬프팅 등 추가 실험이 필요합니다.
 
@@ -171,13 +172,14 @@ mal-analytics-engineering/
 │       └── marts/                #  3 tables — 비즈니스 질문 답변용
 │
 ├── semantic_layer/               #  Semantic Layer (한/영 병기)
-│   ├── table_definitions.yml     #  69개 컬럼 정의
+│   ├── table_definitions.yml     #  74개 컬럼 정의
 │   ├── business_glossary.yml     #  16개 비즈니스 용어 사전
-│   └── metric_definitions.yml    #  16개 지표 정의
+│   ├── metric_definitions.yml    #  13개 지표 정의
+│   └── query_patterns.yml        #  7개 DuckDB 쿼리 패턴
 │
 ├── golden_dataset/               #  Golden Dataset + LLM 평가
 │   ├── questions.yml             #  40개 질문 (5 카테고리 × 3 난이도)
-│   ├── golden_queries.sql        #  39개 검증된 Golden SQL
+│   ├── golden_queries.sql        #  40개 검증된 Golden SQL
 │   └── llm_evaluation/
 │       ├── evaluate.py           #  Gemini API 평가 스크립트
 │       └── results.json          #  Baseline vs Full 비교 결과
