@@ -2,7 +2,7 @@
 -- watching_status 코드를 이름으로 매핑
 
 with source as (
-    select * from read_csv_auto('../data/raw/animelist.csv')
+    select * from {{ source('raw', 'animelist') }}
 )
 
 select
@@ -15,6 +15,7 @@ select
         when 2 then 'Completed'
         when 3 then 'On Hold'
         when 4 then 'Dropped'
+        -- Note: Code 5 does not exist in MAL API (skipped in their numbering scheme)
         when 6 then 'Plan to Watch'
         else 'Unknown'
     end as watching_status,

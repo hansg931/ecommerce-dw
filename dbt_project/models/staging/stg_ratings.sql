@@ -2,7 +2,7 @@
 -- 완료 시청 + 점수 부여한 레코드만 포함 (57M rows)
 
 with source as (
-    select * from read_csv_auto('../data/raw/rating_complete.csv')
+    select * from {{ source('raw', 'rating_complete') }}
 )
 
 select

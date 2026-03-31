@@ -2,7 +2,7 @@
 -- 컬럼명 snake_case, 타입 캐스팅, 파생 컬럼 추가
 
 with source as (
-    select * from read_csv_auto('../data/raw/anime.csv')
+    select * from {{ source('raw', 'anime') }}
 ),
 
 cleaned as (
@@ -36,7 +36,7 @@ cleaned as (
         try_cast("Dropped" as integer) as dropped_count,
         try_cast("Plan to Watch" as integer) as plan_to_watch_count,
 
-        -- 점수 분포
+        -- 점수 분포 (현재 downstream 미사용 — 향후 점수 분산/왜도 분석용으로 보존)
         try_cast("Score-10" as double) as score_10_count,
         try_cast("Score-9" as double) as score_9_count,
         try_cast("Score-8" as double) as score_8_count,
