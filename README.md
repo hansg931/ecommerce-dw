@@ -6,8 +6,8 @@ MyAnimeList 57M+ ratings 데이터를 활용한 콘텐츠 플랫폼 **Data Wareh
 
 - **EDA에서 5가지 데이터 문제 발견** → DW 모델링 방향 결정
   - 인기도 편중 (Gini 0.87), Positivity Bias (7-8점 48.5%), 파워유저 편향 (1%가 9.2%), IP > 오리지널 (+0.7점), ONA 급성장
-- **10개 dbt 모델** (3-Layer), 24개 테스트 전체 통과
-- **Semantic Layer가 LLM SQL 생성 품질을 개선**: 실행 성공률 94.9% → **100%**, 결과 일치율 33.3% → **41.0%**
+- **10개 dbt 모델** (3-Layer), 30개 테스트 전체 통과
+- **Semantic Layer가 LLM SQL 생성 품질을 개선**: 전체 결과 일치율(full_match) 52.5% → **55.0%** (40개 질문, Gemini 3.1 Flash Lite)
 
 ## 프로젝트 구조
 
