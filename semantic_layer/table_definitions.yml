@@ -76,14 +76,87 @@ tables:
         type: DOUBLE
         description_ko: "종합 성과 점수 (Score 40% + 완주율 30% + Members 20% + 드롭률 역수 10%)"
         description_en: "Composite performance score combining quality, completion, and popularity"
+      - name: season
+        type: VARCHAR
+        description_ko: "방영 시즌 (Winter/Spring/Summer/Fall)"
+        description_en: "Airing season"
+        values: [Winter, Spring, Summer, Fall]
+      - name: episodes
+        type: INTEGER
+        description_ko: "총 에피소드 수"
+        description_en: "Total number of episodes"
+      - name: median_rating
+        type: DOUBLE
+        description_ko: "유저 평점 중앙값"
+        description_en: "Median user rating"
+      - name: stddev_rating
+        type: DOUBLE
+        description_ko: "유저 평점 표준편차 (의견 분산도)"
+        description_en: "Standard deviation of user ratings"
+      - name: high_rating_ratio
+        type: DOUBLE
+        description_ko: "고평점(8점 이상) 비율"
+        description_en: "Fraction of ratings that are 8 or above"
+      - name: low_rating_ratio
+        type: DOUBLE
+        description_ko: "저평점(4점 이하) 비율"
+        description_en: "Fraction of ratings that are 4 or below"
+      - name: favorites
+        type: INTEGER
+        description_ko: "즐겨찾기 추가 유저 수"
+        description_en: "Number of users who favorited this anime"
+      - name: rating_count
+        type: INTEGER
+        description_ko: "평점 부여 유저 수 (animelist 완료 + 점수 부여)"
+        description_en: "Number of users who submitted a rating"
+      - name: plan_rate
+        type: DOUBLE
+        description_ko: "'보고 싶다' 등록 비율 (Plan to Watch / 전체 리스트)"
+        description_en: "Fraction of list users who plan to watch"
+      - name: completed_users
+        type: INTEGER
+        description_ko: "완주 유저 수 (animelist Completed)"
+        description_en: "Number of users who completed watching"
+      - name: dropped_users
+        type: INTEGER
+        description_ko: "드롭 유저 수 (animelist Dropped)"
+        description_en: "Number of users who dropped the anime"
+      - name: watching_users
+        type: INTEGER
+        description_ko: "현재 시청 중인 유저 수"
+        description_en: "Number of users currently watching"
       - name: has_synopsis
         type: BOOLEAN
         description_ko: "유효한 시놉시스 존재 여부"
         description_en: "Whether the anime has a valid synopsis"
+      - name: synopsis_word_count
+        type: INTEGER
+        description_ko: "시놉시스 단어 수"
+        description_en: "Word count of the synopsis text"
+      - name: has_ratings
+        type: BOOLEAN
+        description_ko: "유저 평점 데이터 존재 여부 (rating_complete 기준)"
+        description_en: "Whether the anime has user rating data"
       - name: is_digital_native
         type: BOOLEAN
         description_ko: "디지털 네이티브 작품 여부 (ONA)"
         description_en: "Whether the anime is a digital-native format (ONA)"
+      - name: score_rank
+        type: INTEGER
+        description_ko: "MAL 점수 기준 순위 (1위 = 최고 점수)"
+        description_en: "Rank by MAL score (1 = highest score)"
+      - name: popularity_rank
+        type: INTEGER
+        description_ko: "Members 수 기준 인기 순위"
+        description_en: "Rank by member count (1 = most popular)"
+      - name: completion_rank
+        type: INTEGER
+        description_ko: "완주율 기준 순위"
+        description_en: "Rank by completion rate"
+      - name: engagement_rank
+        type: INTEGER
+        description_ko: "평점 참여 수 기준 순위"
+        description_en: "Rank by rating count (engagement)"
 
   - name: mart_user_segments
     description_ko: "유저 세그먼트 테이블 — 활동 수준, 평점 성향, 시청 패턴"
@@ -129,8 +202,61 @@ tables:
         description_en: "User's drop rate across their anime list"
       - name: most_watched_genres
         type: VARCHAR
-        description_ko: "가장 많이 시청한 장르 조합"
-        description_en: "Most frequently watched genre combination"
+        description_ko: "가장 많이 시청한 장르 조합 (쉼표 구분 멀티 장르 문자열)"
+        description_en: "Most frequently watched genre combination (comma-separated multi-genre string)"
+      - name: unique_anime_rated
+        type: INTEGER
+        description_ko: "평점을 부여한 고유 작품 수 (시청 다양성 지표)"
+        description_en: "Number of distinct anime rated by user"
+      - name: total_list_entries
+        type: INTEGER
+        description_ko: "전체 리스트 등록 작품 수 (animelist 기준)"
+        description_en: "Total anime entries in user's list"
+      - name: total_watched_episodes
+        type: INTEGER
+        description_ko: "총 시청 에피소드 수"
+        description_en: "Total episodes watched across all anime"
+      - name: stddev_rating
+        type: DOUBLE
+        description_ko: "평점 표준편차 (평점 일관성 지표)"
+        description_en: "Standard deviation of user's ratings"
+      - name: median_rating
+        type: DOUBLE
+        description_ko: "평점 중앙값"
+        description_en: "Median rating given by user"
+      - name: high_rating_ratio
+        type: DOUBLE
+        description_ko: "고평점(8점 이상) 부여 비율"
+        description_en: "Fraction of ratings that are 8 or above"
+      - name: low_rating_ratio
+        type: DOUBLE
+        description_ko: "저평점(4점 이하) 부여 비율"
+        description_en: "Fraction of ratings that are 4 or below"
+      - name: completed_count
+        type: INTEGER
+        description_ko: "완주한 작품 수"
+        description_en: "Number of anime completed by user"
+      - name: watching_count
+        type: INTEGER
+        description_ko: "현재 시청 중인 작품 수"
+        description_en: "Number of anime currently being watched"
+      - name: dropped_count
+        type: INTEGER
+        description_ko: "드롭한 작품 수"
+        description_en: "Number of anime dropped by user"
+      - name: plan_to_watch_count
+        type: INTEGER
+        description_ko: "'보고 싶다' 등록 작품 수"
+        description_en: "Number of anime in plan-to-watch list"
+      - name: drop_tendency
+        type: VARCHAR
+        description_ko: "드롭 성향 (High Dropper: 30%+, Moderate Dropper: 10%+, Committed Viewer)"
+        description_en: "Drop tendency classification based on user drop rate"
+        values: [High Dropper, Moderate Dropper, Committed Viewer]
+      - name: rating_engagement_ratio
+        type: DOUBLE
+        description_ko: "평점 참여율 (총 평점 수 / 전체 리스트 등록 수)"
+        description_en: "Rating engagement rate — ratings given per list entry"
 
   - name: mart_genre_trends
     description_ko: "장르 트렌드 테이블 — 장르별 성장성, 품질, 인기도 분석"
@@ -160,7 +286,51 @@ tables:
         type: DOUBLE
         description_ko: "장르 건강도 점수 (성장 30% + 품질 30% + 인기 20% + 완주율 20%)"
         description_en: "Composite genre health score"
+      - name: avg_user_rating
+        type: DOUBLE
+        description_ko: "유저 평점 평균 (rating_complete 기준)"
+        description_en: "Average user rating from completed ratings dataset"
+      - name: total_members
+        type: INTEGER
+        description_ko: "장르 전체 Members 합계"
+        description_en: "Total member count across all anime in this genre"
+      - name: avg_members
+        type: DOUBLE
+        description_ko: "장르 작품당 평균 Members 수"
+        description_en: "Average member count per anime in this genre"
+      - name: avg_completion_rate
+        type: DOUBLE
+        description_ko: "장르 평균 완주율"
+        description_en: "Average completion rate for anime in this genre"
+      - name: avg_drop_rate
+        type: DOUBLE
+        description_ko: "장르 평균 드롭률"
+        description_en: "Average drop rate for anime in this genre"
+      - name: total_ratings
+        type: INTEGER
+        description_ko: "장르 전체 평점 수 합계"
+        description_en: "Total rating count across all anime in this genre"
+      - name: recent_ratio
+        type: DOUBLE
+        description_ko: "최근 작품(2015-2019) 비율 (장르 내 최신성 지표)"
+        description_en: "Fraction of anime in this genre released 2015-2019"
+      - name: popular_ratio
+        type: DOUBLE
+        description_ko: "인기 작품(Members Top 10%) 비율"
+        description_en: "Fraction of anime in this genre that are in Members Top 10%"
+      - name: recent_avg_count
+        type: DOUBLE
+        description_ko: "최근 기간(2015-2019) 연평균 작품 수"
+        description_en: "Average annual anime count in 2015-2019 period"
+      - name: prev_avg_count
+        type: DOUBLE
+        description_ko: "이전 기간(2010-2014) 연평균 작품 수"
+        description_en: "Average annual anime count in 2010-2014 period"
       - name: count_growth_rate
         type: DOUBLE
         description_ko: "작품 수 성장률 (최근 5년 vs 이전 5년)"
         description_en: "Growth rate in anime count (2015-2019 vs 2010-2014)"
+      - name: score_change
+        type: DOUBLE
+        description_ko: "평균 점수 변화 (최근 - 이전 기간)"
+        description_en: "Change in average score between recent and previous period"

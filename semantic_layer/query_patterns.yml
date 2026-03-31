@@ -1,0 +1,199 @@
+# Semantic Layer: DuckDB 쿼리 패턴 가이드
+# LLM이 SQL을 생성할 때 참고할 일반적인 패턴과 DuckDB 특화 문법
+# 사람과 LLM이 함께 읽을 수 있도록 한국어 + 영어 병기
+
+patterns:
+
+  # ─────────────────────────────────────────────────────────
+  # 1. 멀티장르 처리 패턴
+  # ─────────────────────────────────────────────────────────
+
+  - name: multi_genre_unnest
+    description_ko: "쉼표로 구분된 genres 컬럼을 개별 장르로 분해"
+    description_en: "Explode comma-separated genres column into individual genre rows"
+    note_ko: "mart_genre_trends는 이미 장르별 집계 완료 — 개별 장르 분석 시 그 테이블 사용"
+    note_en: "mart_genre_trends already contains per-genre aggregates — use it for genre-level analysis"
+    example_sql: |
+      -- mart_content_performance에서 장르별 작품 집계가 필요할 때
+      SELECT
+          trim(unnest(string_split(genres, ','))) AS genre,
+          COUNT(*) AS anime_count,
+          AVG(mal_score) AS avg_score
+      FROM main_marts.mart_content_performance
+      WHERE genres IS NOT NULL AND genres != 'Unknown'
+      GROUP BY 1
+      ORDER BY anime_count DESC;
+
+  # ─────────────────────────────────────────────────────────
+  # 2. 인기도 티어 필터링 패턴
+  # ─────────────────────────────────────────────────────────
+
+  - name: popularity_tier_filter
+    description_ko: "members_tier 컬럼으로 인기도 상위 작품 필터링"
+    description_en: "Filter top-popularity anime using members_tier column"
+    note_ko: "members_tier 값: 'Top 1%', 'Top 5%', 'Top 10%', 'Upper Half', 'Lower Half'"
+    note_en: "members_tier values: 'Top 1%', 'Top 5%', 'Top 10%', 'Upper Half', 'Lower Half'"
+    example_sql: |
+      -- 인기 상위 10% 작품
+      SELECT name, members, mal_score, completion_rate
+      FROM main_marts.mart_content_performance
+      WHERE members_tier IN ('Top 1%', 'Top 5%', 'Top 10%')
+      ORDER BY members DESC
+      LIMIT 20;
+
+  # ─────────────────────────────────────────────────────────
+  # 3. 유저 세그먼트 분석 패턴
+  # ─────────────────────────────────────────────────────────
+
+  - name: user_segment_groupby
+    description_ko: "유저 세그먼트 컬럼(user_tier, rating_tendency 등)으로 그룹 비교"
+    description_en: "Group by user segment columns for comparison analysis"
+    note_ko: |
+      mart_user_segments는 유저 1행 단위 테이블 — 집계 시 GROUP BY 사용.
+      다른 mart 테이블과 직접 JOIN하는 컬럼 없음 (user-anime 레벨 데이터는 mart에 없음).
+    note_en: |
+      mart_user_segments is a user-grain table — use GROUP BY for aggregation.
+      No direct join key to anime-level mart tables (user-anime level data not in marts).
+    example_sql: |
+      -- 유저 티어별 평균 평점과 완주율 비교
+      SELECT
+          user_tier,
+          COUNT(*) AS user_count,
+          ROUND(AVG(avg_rating), 3) AS avg_avg_rating,
+          ROUND(AVG(user_completion_rate), 4) AS avg_completion_rate
+      FROM main_marts.mart_user_segments
+      GROUP BY user_tier
+      ORDER BY user_tier;
+
+  - name: rating_tendency_distribution
+    description_ko: "평점 성향 분포 조회"
+    description_en: "Query rating tendency distribution"
+    example_sql: |
+      -- 평점 성향별 유저 수와 비율
+      SELECT
+          rating_tendency,
+          COUNT(*) AS user_count,
+          ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS pct
+      FROM main_marts.mart_user_segments
+      GROUP BY rating_tendency
+      ORDER BY user_count DESC;
+
+  # ─────────────────────────────────────────────────────────
+  # 4. 연도/시즌 필터링 패턴
+  # ─────────────────────────────────────────────────────────
+
+  - name: year_range_filter
+    description_ko: "start_year 컬럼으로 특정 시기 작품 필터링"
+    description_en: "Filter anime by release year using start_year column"
+    note_ko: "데이터셋 범위: 1960년대 ~ 2020년. 주요 분석 구간: 2010-2019 (최근 10년)"
+    note_en: "Dataset range: 1960s to 2020. Key analysis window: 2010-2019 (recent decade)"
+    example_sql: |
+      -- 연도별 작품 수와 평균 점수
+      SELECT
+          start_year,
+          COUNT(*) AS anime_count,
+          ROUND(AVG(mal_score), 3) AS avg_score,
+          ROUND(AVG(completion_rate), 4) AS avg_completion_rate
+      FROM main_marts.mart_content_performance
+      WHERE start_year BETWEEN 2000 AND 2020
+      GROUP BY start_year
+      ORDER BY start_year;
+
+  - name: decade_comparison
+    description_ko: "2000년대 vs 2010년대 비교 패턴"
+    description_en: "Compare 2000s vs 2010s anime"
+    example_sql: |
+      SELECT
+          CASE
+              WHEN start_year BETWEEN 2000 AND 2009 THEN '2000s'
+              WHEN start_year BETWEEN 2010 AND 2019 THEN '2010s'
+          END AS decade,
+          COUNT(*) AS anime_count,
+          ROUND(AVG(mal_score), 3) AS avg_score,
+          ROUND(AVG(completion_rate), 4) AS avg_completion_rate,
+          ROUND(AVG(drop_rate), 4) AS avg_drop_rate
+      FROM main_marts.mart_content_performance
+      WHERE start_year BETWEEN 2000 AND 2019
+      GROUP BY 1
+      ORDER BY 1;
+
+  # ─────────────────────────────────────────────────────────
+  # 5. DuckDB 특화 문법
+  # ─────────────────────────────────────────────────────────
+
+  - name: duckdb_filter_aggregate
+    description_ko: "FILTER (WHERE ...) 조건부 집계 — DuckDB/PostgreSQL 문법"
+    description_en: "Conditional aggregation using FILTER clause"
+    example_sql: |
+      -- 유저 티어별 각 rating_tendency 유저 수 피벗
+      SELECT
+          user_tier,
+          COUNT(*) FILTER (WHERE rating_tendency = 'Generous') AS generous_count,
+          COUNT(*) FILTER (WHERE rating_tendency = 'Moderate') AS moderate_count,
+          COUNT(*) FILTER (WHERE rating_tendency = 'Critical') AS critical_count
+      FROM main_marts.mart_user_segments
+      GROUP BY user_tier;
+
+  - name: duckdb_percent_rank
+    description_ko: "PERCENT_RANK() 윈도우 함수로 분위수 계산"
+    description_en: "Calculate percentiles using PERCENT_RANK() window function"
+    example_sql: |
+      -- 성과 점수 상위 10% 작품
+      SELECT name, performance_score,
+             PERCENT_RANK() OVER (ORDER BY performance_score) AS pct_rank
+      FROM main_marts.mart_content_performance
+      WHERE performance_score IS NOT NULL
+      QUALIFY pct_rank >= 0.9
+      ORDER BY performance_score DESC;
+
+  # ─────────────────────────────────────────────────────────
+  # 6. 스튜디오 분석 패턴 (멀티 스튜디오 처리)
+  # ─────────────────────────────────────────────────────────
+
+  - name: studio_analysis
+    description_ko: "studios 컬럼 분석 — 쉼표 구분 멀티 스튜디오"
+    description_en: "Analyze studios column — comma-separated multi-studio"
+    note_ko: |
+      단일 스튜디오 분석: WHERE studios NOT LIKE '%,%' (쉼표 없는 행만)
+      멀티 스튜디오 분해: UNNEST(string_split(studios, ',')) 사용
+    note_en: |
+      Single studio only: WHERE studios NOT LIKE '%,%'
+      Explode multi-studio: UNNEST(string_split(studios, ','))
+    example_sql: |
+      -- 스튜디오별 평균 점수 (단독 제작 작품만, 최소 5편 이상)
+      SELECT
+          trim(studios) AS studio,
+          COUNT(*) AS anime_count,
+          ROUND(AVG(mal_score), 3) AS avg_score,
+          ROUND(AVG(completion_rate), 4) AS avg_completion_rate
+      FROM main_marts.mart_content_performance
+      WHERE studios IS NOT NULL
+        AND studios NOT LIKE '%,%'
+        AND studios != 'Unknown'
+      GROUP BY 1
+      HAVING COUNT(*) >= 5
+      ORDER BY avg_score DESC
+      LIMIT 10;
+
+  # ─────────────────────────────────────────────────────────
+  # 7. 테이블 접근 경로
+  # ─────────────────────────────────────────────────────────
+
+  - name: table_access_paths
+    description_ko: "DuckDB에서 mart 테이블 접근 경로"
+    description_en: "How to reference mart tables in DuckDB queries"
+    note_ko: |
+      스키마: main_marts
+      - main_marts.mart_content_performance  (17,562행, 작품별)
+      - main_marts.mart_user_segments        (310,059행, 유저별)
+      - main_marts.mart_genre_trends         (43행, 장르별)
+    note_en: |
+      Schema: main_marts
+      - main_marts.mart_content_performance  (17,562 rows, per anime)
+      - main_marts.mart_user_segments        (310,059 rows, per user)
+      - main_marts.mart_genre_trends         (43 rows, per genre)
+    example_sql: |
+      -- 세 테이블 각각 단독 사용 (테이블 간 직접 JOIN 키 없음)
+      SELECT * FROM main_marts.mart_content_performance LIMIT 5;
+      SELECT * FROM main_marts.mart_user_segments LIMIT 5;
+      SELECT * FROM main_marts.mart_genre_trends LIMIT 5;
